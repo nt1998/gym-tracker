@@ -1,0 +1,509 @@
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  border-bottom: 1px solid #313244;
+  text-align: center;
+  background: #1e1e2e;
+  z-index: 100;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.content {
+  flex: 1;
+  margin-top: 56px;
+  padding-bottom: 80px;
+  overflow-y: auto;
+  overscroll-behavior: none;
+}
+
+.navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: #181825;
+  border-top: 1px solid #313244;
+  padding-bottom: 10px;
+}
+
+.navbar button {
+  flex: 1;
+  padding: 10px 8px;
+  background: none;
+  border: none;
+  color: #6c7086;
+  font-size: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.navbar button.active {
+  color: #cdd6f4;
+}
+
+.nav-icon {
+  font-size: 1.2rem;
+}
+
+/* Log page */
+.log-page {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-row button {
+  width: 36px;
+  height: 36px;
+  background: #313244;
+  border: none;
+  border-radius: 8px;
+  color: #cdd6f4;
+  font-size: 1rem;
+}
+
+.date-row button.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.date-row input {
+  flex: 1;
+  padding: 8px 12px;
+  background: #313244;
+  border: none;
+  border-radius: 8px;
+  color: #cdd6f4;
+  font-size: 0.9rem;
+}
+
+.routine-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.routine-switch {
+  padding: 8px 16px;
+  background: #89b4fa;
+  border: none;
+  border-radius: 8px;
+  color: #1e1e2e;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.exercise-count {
+  color: #6c7086;
+  font-size: 0.9rem;
+}
+
+.exercise-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.exercise-nav button {
+  width: 40px;
+  height: 40px;
+  background: #313244;
+  border: none;
+  border-radius: 8px;
+  color: #cdd6f4;
+  font-size: 1.2rem;
+}
+
+.exercise-nav button:disabled {
+  opacity: 0.3;
+}
+
+.exercise-name {
+  flex: 1;
+  margin: 0;
+  font-size: 1.1rem;
+  text-align: center;
+  color: #cdd6f4;
+}
+
+.last-workout {
+  text-align: center;
+  color: #6c7086;
+  font-size: 0.85rem;
+  padding: 6px;
+  background: #313244;
+  border-radius: 6px;
+}
+
+.sets-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sets-label {
+  font-size: 0.8rem;
+  color: #a6adc8;
+  margin-top: 8px;
+}
+
+.set-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #313244;
+  border-radius: 10px;
+}
+
+.set-row.done {
+  opacity: 0.6;
+}
+
+.set-row.work {
+  background: #45475a;
+}
+
+.set-num {
+  width: 28px;
+  font-size: 0.85rem;
+  color: #6c7086;
+  font-weight: 600;
+}
+
+.set-row input {
+  width: 60px;
+  padding: 8px;
+  background: #1e1e2e;
+  border: none;
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-size: 1rem;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.set-row input::-webkit-outer-spin-button,
+.set-row input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.set-row input::placeholder {
+  color: #6c7086;
+  font-size: 0.85rem;
+}
+
+.set-x {
+  color: #6c7086;
+}
+
+.check-btn {
+  width: 36px;
+  height: 36px;
+  background: #1e1e2e;
+  border: none;
+  border-radius: 8px;
+  color: #6c7086;
+  font-size: 1.1rem;
+  margin-left: auto;
+}
+
+.check-btn.checked {
+  background: #a6e3a1;
+  color: #1e1e2e;
+}
+
+.notes-section textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 12px;
+  background: #313244;
+  border: none;
+  border-radius: 10px;
+  color: #cdd6f4;
+  font-size: 0.9rem;
+  resize: none;
+  font-family: inherit;
+}
+
+.notes-section textarea::placeholder {
+  color: #6c7086;
+}
+
+.sync-status {
+  padding: 6px 10px;
+  background: #313244;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #a6adc8;
+}
+
+/* Routines page */
+.routines-page {
+  padding: 16px;
+}
+
+.routine-section {
+  margin-bottom: 24px;
+}
+
+.routine-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  color: #89b4fa;
+}
+
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exercise-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: #313244;
+  border-radius: 8px;
+}
+
+.exercise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exercise-title {
+  font-size: 0.95rem;
+  color: #cdd6f4;
+}
+
+.exercise-sets {
+  font-size: 0.75rem;
+  color: #6c7086;
+}
+
+.exercise-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.exercise-actions button {
+  padding: 6px 10px;
+  background: #45475a;
+  border: none;
+  border-radius: 6px;
+  color: #cdd6f4;
+  font-size: 0.8rem;
+}
+
+.exercise-actions button:disabled {
+  opacity: 0.3;
+}
+
+.exercise-actions button.del {
+  color: #f38ba8;
+}
+
+.add-btn {
+  width: 100%;
+  padding: 12px;
+  background: #45475a;
+  border: none;
+  border-radius: 8px;
+  color: #cdd6f4;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+/* Stats page */
+.stats-page {
+  padding: 16px;
+}
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: #313244;
+  border-radius: 12px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #89b4fa;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: #6c7086;
+  text-align: center;
+}
+
+.phase-info-card {
+  background: #313244;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.phase-info-card h3 {
+  margin: 0 0 4px 0;
+  color: #a6e3a1;
+  font-size: 1rem;
+}
+
+.phase-dates {
+  font-size: 0.8rem;
+  color: #6c7086;
+}
+
+.phase-goals {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #a6adc8;
+}
+
+.recent-workouts h3 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  color: #cdd6f4;
+}
+
+.workout-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #313244;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.workout-date {
+  color: #cdd6f4;
+  font-size: 0.9rem;
+}
+
+.workout-type {
+  color: #89b4fa;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.empty {
+  color: #6c7086;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Settings page */
+.settings-page {
+  padding: 16px;
+}
+
+.settings-page h2 {
+  font-size: 1rem;
+  margin: 16px 0 12px 0;
+}
+
+.settings-page h2:first-child {
+  margin-top: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.field label {
+  font-size: 0.75rem;
+  color: #a6adc8;
+}
+
+.field input {
+  padding: 8px;
+  background: #313244;
+  border: none;
+  border-radius: 8px;
+  color: #cdd6f4;
+  font-size: 1rem;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 12px;
+  background: #89b4fa;
+  border: none;
+  border-radius: 8px;
+  color: #1e1e2e;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.danger-btn {
+  width: 100%;
+  padding: 12px;
+  background: #f38ba8;
+  border: none;
+  border-radius: 8px;
+  color: #1e1e2e;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.connected-info {
+  background: #313244;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.connected-info p {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+}
