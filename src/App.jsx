@@ -94,54 +94,6 @@ const defaultRoutines = {
   }
 }
 
-// Migrate old workout data - fix rep ranges and invalid values
-const migrateWorkouts = (workouts) => {
-  const migrated = { ...workouts }
-  let changed = false
-
-  for (const date in migrated) {
-    const workout = migrated[date]
-    if (!workout.exercises) continue
-
-    for (const exercise of workout.exercises) {
-      // Fix warmup sets
-      if (exercise.warmupSets) {
-        for (const set of exercise.warmupSets) {
-          // Convert rep ranges like "3-15" to just the number (take last part)
-          if (set.reps && typeof set.reps === 'string' && set.reps.includes('-')) {
-            const parts = set.reps.split('-')
-            set.reps = parts[parts.length - 1]
-            changed = true
-          }
-          // Clear invalid weight 0 with range reps
-          if (set.weight === '0' || set.weight === 0) {
-            set.weight = ''
-            changed = true
-          }
-        }
-      }
-      // Fix work sets
-      if (exercise.workSets) {
-        for (const set of exercise.workSets) {
-          // Convert rep ranges like "3-15" to just the number (take last part)
-          if (set.reps && typeof set.reps === 'string' && set.reps.includes('-')) {
-            const parts = set.reps.split('-')
-            set.reps = parts[parts.length - 1]
-            changed = true
-          }
-          // Clear invalid weight 0 with range reps
-          if (set.weight === '0' || set.weight === 0) {
-            set.weight = ''
-            changed = true
-          }
-        }
-      }
-    }
-  }
-
-  return { migrated, changed }
-}
-
 function App() {
   const [tab, setTab] = useState('log')
   const [date] = useState(new Date().toISOString().split('T')[0])
@@ -193,15 +145,8 @@ function App() {
   // Load from localStorage first, then optionally merge with GitHub
   useEffect(() => {
     const savedWorkouts = localStorage.getItem('gymtracker_workouts')
-    if (savedWorkouts) {
-      const parsed = JSON.parse(savedWorkouts)
-      const { migrated, changed } = migrateWorkouts(parsed)
-      setWorkouts(migrated)
-      if (changed) {
-        localStorage.setItem('gymtracker_workouts', JSON.stringify(migrated))
-      }
-    }
-    // Always use defaultRoutines to ensure new format
+    if (savedWorkouts) setWorkouts(JSON.parse(savedWorkouts))
+    // Always use defaultRoutines to ensure new format with correct units
     localStorage.setItem('gymtracker_routines', JSON.stringify(defaultRoutines))
     setRoutines(defaultRoutines)
     const savedNotes = localStorage.getItem('gymtracker_notes')
