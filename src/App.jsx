@@ -634,7 +634,8 @@ function App() {
   }
 
   const getLastExerciseValues = (exerciseName) => {
-    const sortedDates = Object.keys(workouts).filter(d => d < date).sort().reverse()
+    // Only look at committed workouts for previous values
+    const sortedDates = Object.keys(workouts).filter(d => d < date && workouts[d].committed).sort().reverse()
     for (const d of sortedDates) {
       const w = workouts[d]
       const ex = w.exercises?.find(e => e.name === exerciseName)
