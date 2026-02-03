@@ -8,33 +8,23 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 // Convert lbs to kg
 const lbsToKg = (lbs) => Math.round(lbs * 0.453592 * 10) / 10
 
-// Get display unit for weight type
-const getWeightUnit = (weightType) => {
-  if (weightType?.endsWith('-lbs')) return 'lbs'
-  return 'kg'
-}
-
-// Convert weight to kg for stats (based on weight type)
-const toKg = (weight, weightType) => {
+// Convert weight to kg for stats
+const toKg = (weight, unit) => {
   if (!weight) return 0
   const w = parseFloat(weight) || 0
-  if (weightType?.endsWith('-lbs')) {
+  if (unit === 'lbs') {
     return lbsToKg(w)
   }
   return w
 }
 
-// Weight type presets for quick setup
-const weightPresets = {
-  'machine-kg-5': { label: 'Machine (kg, +5)', unit: 'kg', type: 'machine', steps: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120, 130, 140, 150] },
-  'machine-kg-2.5': { label: 'Machine (kg, +2.5)', unit: 'kg', type: 'machine', steps: [5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30, 32.5, 35, 37.5, 40, 45, 50, 55, 60, 65, 70, 75, 80] },
-  'machine-lbs-5': { label: 'Machine (lbs, +5)', unit: 'lbs', type: 'machine-lbs', steps: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200] },
-  'machine-lbs-10': { label: 'Machine (lbs, +10)', unit: 'lbs', type: 'machine-lbs', steps: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 220, 240, 260, 280, 300] },
-  'cable-kg-5': { label: 'Cable (kg, +5)', unit: 'kg', type: 'cable', steps: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-  'cable-lbs-5': { label: 'Cable (lbs, +5)', unit: 'lbs', type: 'cable-lbs', steps: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120, 130, 140, 150] },
-  'plates-kg': { label: 'Plates (kg)', unit: 'kg', type: 'plates-kg', stepSize: 2.5 },
-  'plates-lbs': { label: 'Plates (lbs)', unit: 'lbs', type: 'plates-lbs', stepSize: 5 },
-  'custom': { label: 'Custom', unit: 'kg', type: 'machine', steps: [] }
+// Generate weight steps from start, increment, and max
+const generateWeightSteps = (start, increment, max = 200) => {
+  const steps = []
+  for (let w = start; w <= max; w += increment) {
+    steps.push(Math.round(w * 10) / 10)
+  }
+  return steps
 }
 
 // Calculate plate combination for a given total weight (per side)
@@ -77,26 +67,26 @@ const defaultRoutines = {
   push: {
     name: 'Push',
     exercises: [
-      { id: 1, name: 'Incline Chest Press', warmupSets: 2, workSets: 3, reps: '8', weightType: 'plates-kg', weightStep: 2.5, barWeight: 20 },
-      { id: 2, name: 'Butterfly', warmupSets: 1, workSets: 2, reps: '8', weightType: 'machine', weightSteps: [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80] },
-      { id: 3, name: 'Lateral Raise Machine', warmupSets: 1, workSets: 2, reps: '8', weightType: 'machine', weightSteps: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50] },
-      { id: 4, name: 'Triceps Cable Pushdowns', warmupSets: 1, workSets: 2, reps: '8', weightType: 'cable', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-      { id: 5, name: 'Seated Leg Extensions', warmupSets: 1, workSets: 3, reps: '8', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-      { id: 6, name: 'Standing Calf Raises', warmupSets: 1, workSets: 3, reps: '8', weightType: 'machine', weightSteps: [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120] },
-      { id: 7, name: 'Crunch Cable', warmupSets: 0, workSets: 3, reps: '8', weightType: 'cable', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] }
+      { id: 1, name: 'Incline Chest Press', warmupSets: 2, workSets: 3, reps: '8', unit: 'kg', equipmentType: 'plates', startWeight: 20, increment: 5, barWeight: 20 },
+      { id: 2, name: 'Butterfly', warmupSets: 1, workSets: 2, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
+      { id: 3, name: 'Lateral Raise Machine', warmupSets: 1, workSets: 2, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
+      { id: 4, name: 'Triceps Cable Pushdowns', warmupSets: 1, workSets: 2, reps: '8', unit: 'kg', equipmentType: 'cable', startWeight: 5, increment: 5 },
+      { id: 5, name: 'Seated Leg Extensions', warmupSets: 1, workSets: 3, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
+      { id: 6, name: 'Standing Calf Raises', warmupSets: 1, workSets: 3, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
+      { id: 7, name: 'Crunch Cable', warmupSets: 0, workSets: 3, reps: '8', unit: 'kg', equipmentType: 'cable', startWeight: 5, increment: 5 }
     ]
   },
   pull: {
     name: 'Pull',
     exercises: [
-      { id: 1, name: 'Lat Pulldown', warmupSets: 2, workSets: 2, reps: '8', weightType: 'cable', weightSteps: [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120] },
-      { id: 2, name: 'RDL', warmupSets: 2, workSets: 2, reps: '8', weightType: 'plates-kg', weightStep: 5, barWeight: 20 },
-      { id: 3, name: 'Upper Back Row (gray)', warmupSets: 1, workSets: 2, reps: '8', weightType: 'machine', weightSteps: [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-      { id: 4, name: 'Low Machine Row', warmupSets: 0, workSets: 2, reps: '8', weightType: 'machine', weightSteps: [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-      { id: 5, name: 'Reverse Butterfly', warmupSets: 1, workSets: 1, reps: '8', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60] },
-      { id: 6, name: 'Preacher Curl', warmupSets: 1, workSets: 2, reps: '8', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60] },
-      { id: 7, name: 'Seated Leg Curl', warmupSets: 1, workSets: 3, reps: '8', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-      { id: 8, name: 'Hip Adduction', warmupSets: 1, workSets: 3, reps: '8', weightType: 'machine', weightSteps: [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120] }
+      { id: 1, name: 'Lat Pulldown', warmupSets: 2, workSets: 2, reps: '8', unit: 'kg', equipmentType: 'cable', startWeight: 5, increment: 5 },
+      { id: 2, name: 'RDL', warmupSets: 2, workSets: 2, reps: '8', unit: 'kg', equipmentType: 'plates', startWeight: 20, increment: 5, barWeight: 20 },
+      { id: 3, name: 'Upper Back Row (gray)', warmupSets: 1, workSets: 2, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
+      { id: 4, name: 'Low Machine Row', warmupSets: 0, workSets: 2, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
+      { id: 5, name: 'Reverse Butterfly', warmupSets: 1, workSets: 1, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
+      { id: 6, name: 'Preacher Curl', warmupSets: 1, workSets: 2, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
+      { id: 7, name: 'Seated Leg Curl', warmupSets: 1, workSets: 3, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
+      { id: 8, name: 'Hip Adduction', warmupSets: 1, workSets: 3, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 }
     ]
   }
 }
@@ -442,17 +432,21 @@ function App() {
     const currentWeight = parseFloat(set.weight) || parseFloat(prevWeight) || 0
     let newWeight
 
-    const wType = routineTemplate?.weightType || 'plates-kg'
-    if (wType === 'plates' || wType === 'plates-kg' || wType === 'plates-lbs') {
-      // For plates-lbs, default step is 5 lbs per side (10 lbs total)
-      const plateWeight = routineTemplate.weightStep || (wType === 'plates-lbs' ? 5 : 2.5)
-      const step = plateWeight * 2
-      newWeight = Math.max(0, Math.round((currentWeight + delta * step) * 10) / 10)
-    } else if (routineTemplate?.weightSteps) {
-      // Machine/cable with custom steps
-      const steps = routineTemplate.weightSteps
-      const currentIdx = steps.indexOf(currentWeight)
+    const equipType = routineTemplate?.equipmentType || 'machine'
+    const increment = routineTemplate?.increment || 5
+    const startWeight = routineTemplate?.startWeight || 5
+
+    if (equipType === 'plates') {
+      // For plates, increment is per side, so total change is 2x
+      const step = increment * 2
+      const barWeight = routineTemplate?.barWeight || (routineTemplate?.unit === 'lbs' ? 45 : 20)
+      newWeight = Math.max(barWeight, Math.round((currentWeight + delta * step) * 10) / 10)
+    } else {
+      // Machine/cable - use generated steps
+      const steps = generateWeightSteps(startWeight, increment)
+      const currentIdx = steps.findIndex(s => Math.abs(s - currentWeight) < 0.1)
       if (currentIdx === -1) {
+        // Find closest step
         const closest = steps.reduce((a, b) => Math.abs(b - currentWeight) < Math.abs(a - currentWeight) ? b : a)
         const closestIdx = steps.indexOf(closest)
         const newIdx = Math.max(0, Math.min(steps.length - 1, closestIdx + delta))
@@ -461,8 +455,6 @@ function App() {
         const newIdx = Math.max(0, Math.min(steps.length - 1, currentIdx + delta))
         newWeight = steps[newIdx]
       }
-    } else {
-      newWeight = Math.max(0, currentWeight + delta * 2.5)
     }
 
     // Also fill in reps from previous if empty, and commit
@@ -662,7 +654,7 @@ function App() {
 
   const getExerciseProgressData = (exerciseName) => {
     const filtered = getFilteredWorkouts()
-    const weightType = getExerciseWeightType(exerciseName)
+    const config = getExerciseConfig(exerciseName)
     const sortedDates = Object.keys(filtered).sort()
 
     const data = []
@@ -673,7 +665,7 @@ function App() {
         let maxWeight = 0
         let maxOneRM = 0
         ex.workSets?.forEach(set => {
-          const weight = toKg(set.weight, weightType)
+          const weight = toKg(set.weight, config.unit)
           const reps = parseInt(set.reps) || 0
           if (weight > 0 && reps > 0) {
             if (weight > maxWeight) maxWeight = weight
@@ -700,7 +692,7 @@ function App() {
 
   const getExerciseStats = (exerciseName) => {
     const filtered = getFilteredWorkouts()
-    const weightType = getExerciseWeightType(exerciseName)
+    const config = getExerciseConfig(exerciseName)
     let maxWeight = 0
     let maxOneRepMax = 0
     let totalSets = 0
@@ -710,7 +702,7 @@ function App() {
       const ex = w.exercises?.find(e => e.name === exerciseName)
       if (ex) {
         ex.workSets?.forEach(set => {
-          const weight = toKg(set.weight, weightType)
+          const weight = toKg(set.weight, config.unit)
           const reps = parseInt(set.reps) || 0
           if (weight > 0 && reps > 0) {
             totalSets++
@@ -727,20 +719,20 @@ function App() {
     return { maxWeight: Math.round(maxWeight * 10) / 10, maxOneRepMax: Math.round(maxOneRepMax * 10) / 10, totalSets, totalReps }
   }
 
-  // Get weight type for an exercise from routines
-  const getExerciseWeightType = (exerciseName) => {
+  // Get exercise config from routines
+  const getExerciseConfig = (exerciseName) => {
     for (const routine of Object.values(routines)) {
       const ex = routine.exercises?.find(e => e.name === exerciseName)
-      if (ex) return ex.weightType
+      if (ex) return ex
     }
-    return 'kg' // default
+    return { unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 }
   }
 
   const getExercisePR = (exerciseName) => {
     // Get PR from all committed workouts before today (returns values in kg)
     let maxWeight = 0
     let maxRepsAtMaxWeight = 0
-    const weightType = getExerciseWeightType(exerciseName)
+    const config = getExerciseConfig(exerciseName)
 
     Object.entries(workouts).forEach(([d, w]) => {
       if (d >= date || !w.committed) return // Only past committed workouts
@@ -749,7 +741,7 @@ function App() {
         ex.workSets?.forEach(set => {
           // Only count sets that are committed (or old data without committed flag)
           if (set.committed === false) return
-          const weight = toKg(set.weight, weightType)
+          const weight = toKg(set.weight, config.unit)
           const reps = parseInt(set.reps) || 0
           if (weight > 0 && reps > 0) {
             if (weight > maxWeight) {
@@ -809,9 +801,9 @@ function App() {
     let totalReps = 0
 
     w.exercises?.forEach(ex => {
-      const weightType = getExerciseWeightType(ex.name)
+      const config = getExerciseConfig(ex.name)
       ;[...(ex.warmupSets || []), ...(ex.workSets || [])].forEach(set => {
-        const weight = toKg(set.weight, weightType)
+        const weight = toKg(set.weight, config.unit)
         const reps = parseInt(set.reps) || 0
         if (weight > 0 && reps > 0) {
           totalWeight += weight * reps
@@ -835,7 +827,7 @@ function App() {
     if (!w) return []
 
     return w.exercises?.map(ex => {
-      const weightType = getExerciseWeightType(ex.name)
+      const config = getExerciseConfig(ex.name)
       // Get PR before this workout date (in kg)
       let maxWeightBefore = 0
       let maxRepsAtMaxBefore = 0
@@ -844,7 +836,7 @@ function App() {
         const prevEx = workout.exercises?.find(e => e.name === ex.name)
         if (prevEx) {
           prevEx.workSets?.forEach(set => {
-            const weight = toKg(set.weight, weightType)
+            const weight = toKg(set.weight, config.unit)
             const reps = parseInt(set.reps) || 0
             if (weight > maxWeightBefore) {
               maxWeightBefore = weight
@@ -861,7 +853,7 @@ function App() {
       let bestReps = 0
       let totalVolume = 0
       ex.workSets?.forEach(set => {
-        const weight = toKg(set.weight, weightType)
+        const weight = toKg(set.weight, config.unit)
         const reps = parseInt(set.reps) || 0
         if (weight > 0 && reps > 0) {
           totalVolume += weight * reps
@@ -915,28 +907,12 @@ function App() {
   const lastExerciseValues = currentExercise ? getLastExerciseValues(currentExercise.name) : { warmupSets: [], workSets: [] }
 
   const openAddExercise = (routineKey) => {
-    setEditModal({ type: 'exercise', routineKey, exercise: { name: '', warmupSets: 1, workSets: 2, reps: '8', weightType: 'machine', weightPreset: 'machine-kg-5', weightSteps: weightPresets['machine-kg-5'].steps }, isNew: true })
+    setEditModal({ type: 'exercise', routineKey, exercise: { name: '', warmupSets: 1, workSets: 2, reps: '8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 }, isNew: true })
   }
 
   const openEditExercise = (routineKey, exerciseId) => {
     const exercise = routines[routineKey].exercises.find(e => e.id === exerciseId)
-    // Try to infer preset from existing configuration
-    let weightPreset = exercise.weightPreset || 'custom'
-    if (!exercise.weightPreset) {
-      // Check if it matches a known preset
-      for (const [key, preset] of Object.entries(weightPresets)) {
-        if (preset.type === exercise.weightType) {
-          if (preset.steps && JSON.stringify(preset.steps) === JSON.stringify(exercise.weightSteps)) {
-            weightPreset = key
-            break
-          } else if (preset.stepSize && preset.stepSize === exercise.weightStep) {
-            weightPreset = key
-            break
-          }
-        }
-      }
-    }
-    setEditModal({ type: 'exercise', routineKey, exercise: { ...exercise, weightSteps: exercise.weightSteps || [], weightPreset }, isNew: false })
+    setEditModal({ type: 'exercise', routineKey, exercise: { ...exercise }, isNew: false })
   }
 
   // Sync current workout with routine template (when routine changes)
@@ -981,21 +957,12 @@ function App() {
   const saveExerciseModal = () => {
     const { routineKey, exercise, isNew } = editModal
     const newRoutines = JSON.parse(JSON.stringify(routines))
-    const cleanExercise = { ...exercise }
-    // Remove UI-only fields
-    delete cleanExercise.weightPreset
-    // Clean up based on weight type
-    if (cleanExercise.weightType === 'plates' || cleanExercise.weightType === 'plates-kg' || cleanExercise.weightType === 'plates-lbs') {
-      delete cleanExercise.weightSteps
-    } else {
-      delete cleanExercise.weightStep
-    }
     if (isNew) {
       const newId = Math.max(...newRoutines[routineKey].exercises.map(e => e.id), 0) + 1
-      newRoutines[routineKey].exercises.push({ ...cleanExercise, id: newId })
+      newRoutines[routineKey].exercises.push({ ...exercise, id: newId })
     } else {
       const idx = newRoutines[routineKey].exercises.findIndex(e => e.id === exercise.id)
-      newRoutines[routineKey].exercises[idx] = cleanExercise
+      newRoutines[routineKey].exercises[idx] = exercise
     }
     setRoutines(newRoutines)
     saveRoutines(newRoutines)
@@ -1137,9 +1104,10 @@ function App() {
   const lastData = currentExercise ? getLastExerciseData(currentExercise.name) : null
 
   // Check if a specific set beats the PR (comparing in kg)
-  const isSetPR = (exerciseName, weight, reps, weightType) => {
+  const isSetPR = (exerciseName, weight, reps) => {
     const pr = getExercisePR(exerciseName)
-    const w = toKg(weight, weightType)
+    const config = getExerciseConfig(exerciseName)
+    const w = toKg(weight, config.unit)
     const r = parseInt(reps) || 0
     if (w <= 0 || r <= 0) return { isWeightPR: false, isRepPR: false }
     const isWeightPR = w > pr.maxWeight
@@ -1151,8 +1119,8 @@ function App() {
     const prevSet = type === 'work' ? lastExerciseValues.workSets[idx] : lastExerciseValues.warmupSets[idx]
     const prevWeight = prevSet?.weight || ''
     const prevReps = prevSet?.reps || ''
-    const goalReps = routineTemplate?.reps?.split('-')[0] || ''
-    const unit = getWeightUnit(routineTemplate?.weightType)
+    const goalReps = routineTemplate?.reps || ''
+    const unit = routineTemplate?.unit || 'kg'
 
     // Has actual values entered today
     const hasValues = set.weight || set.reps
@@ -1162,7 +1130,7 @@ function App() {
 
     // PR status (only for committed work sets with values)
     const prStatus = type === 'work' && isCommitted && set.weight && set.reps
-      ? isSetPR(currentExercise.name, set.weight, set.reps, routineTemplate?.weightType)
+      ? isSetPR(currentExercise.name, set.weight, set.reps)
       : { isWeightPR: false, isRepPR: false }
 
     return (
@@ -1230,8 +1198,7 @@ function App() {
 
             {(() => {
               const pr = getExercisePR(currentExercise.name)
-              const weightType = routineTemplate?.weightType
-              const unit = getWeightUnit(weightType)
+              const unit = routineTemplate?.unit || 'kg'
               // Calculate PR status directly from currentExercise (same data being rendered)
               let bestWeightNative = 0, bestReps = 0
               currentExercise.workSets?.forEach(set => {
@@ -1245,10 +1212,10 @@ function App() {
                   bestReps = r
                 }
               })
-              const bestWeightKg = toKg(bestWeightNative, weightType)
+              const bestWeightKg = toKg(bestWeightNative, unit)
               const isWeightPR = bestWeightKg > pr.maxWeight
               const isRepPR = !isWeightPR && Math.abs(bestWeightKg - pr.maxWeight) < 0.1 && bestReps > pr.maxRepsAtMaxWeight
-              const lastDataKg = lastData ? toKg(lastData.weight, weightType) : 0
+              const lastDataKg = lastData ? toKg(lastData.weight, unit) : 0
 
               if (pr.maxWeight > 0 || isWeightPR || isRepPR) {
                 return (
@@ -1276,13 +1243,13 @@ function App() {
               {currentExercise.workSets.map((set, idx) => renderSetRow(set, idx, 'work', `${idx + 1}`))}
             </div>
 
-            {(routineTemplate?.weightType === 'plates-kg' || routineTemplate?.weightType === 'plates-lbs') && (() => {
+            {routineTemplate?.equipmentType === 'plates' && (() => {
               // Get the current/last weight being used
               const lastWorkSet = currentExercise.workSets?.filter(s => s.weight).pop()
               const weight = parseFloat(lastWorkSet?.weight) || 0
               if (weight <= 0) return null
 
-              const unit = getWeightUnit(routineTemplate.weightType)
+              const unit = routineTemplate.unit || 'kg'
               const barWeight = routineTemplate.barWeight || (unit === 'lbs' ? 45 : 20)
               const plates = getPlatesPerSide(weight, barWeight, unit)
               const kgWeight = unit === 'lbs' ? lbsToKg(weight) : weight
@@ -1443,11 +1410,7 @@ function App() {
                           <div className="exercise-info">
                             <span className="exercise-title">{ex.name}</span>
                             <span className="exercise-sets">
-                              {ex.warmupSets}W + {ex.workSets}S · {ex.reps} · {
-                                (ex.weightType === 'plates' || ex.weightType === 'plates-kg' || ex.weightType === 'plates-lbs')
-                                  ? `±${(ex.weightStep || 2.5) * 2}${getWeightUnit(ex.weightType)}`
-                                  : `${getWeightUnit(ex.weightType)}`
-                              }
+                              {ex.warmupSets}W + {ex.workSets}S · {ex.reps} reps · {ex.equipmentType === 'plates' ? `±${ex.increment * 2}${ex.unit}` : `${ex.startWeight}-${ex.startWeight + ex.increment * 10}${ex.unit}`}
                             </span>
                           </div>
                         </div>
@@ -1502,54 +1465,44 @@ function App() {
                   <label>Work Sets</label>
                   <input type="number" value={editModal.exercise.workSets} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, workSets: parseInt(e.target.value) || 1}})} />
                 </div>
-              </div>
-              <div className="field">
-                <label>Target Reps</label>
-                <input type="number" value={editModal.exercise.reps} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, reps: e.target.value}})} placeholder="8" />
-              </div>
-              <div className="field">
-                <label>Weight Type Preset</label>
-                <select value={editModal.exercise.weightPreset || 'custom'} onChange={(e) => {
-                  const presetKey = e.target.value
-                  const preset = weightPresets[presetKey]
-                  if (preset) {
-                    const updates = {
-                      weightPreset: presetKey,
-                      weightType: preset.type
-                    }
-                    if (preset.steps) {
-                      updates.weightSteps = preset.steps
-                      delete updates.weightStep
-                    } else if (preset.stepSize) {
-                      updates.weightStep = preset.stepSize
-                      delete updates.weightSteps
-                    }
-                    setEditModal({...editModal, exercise: {...editModal.exercise, ...updates}})
-                  }
-                }}>
-                  {Object.entries(weightPresets).map(([key, preset]) => (
-                    <option key={key} value={key}>{preset.label}</option>
-                  ))}
-                </select>
-              </div>
-              {(editModal.exercise.weightType === 'plates-kg' || editModal.exercise.weightType === 'plates-lbs' || editModal.exercise.weightType === 'plates') ? (
                 <div className="field">
-                  <label>Plate weight per side ({getWeightUnit(editModal.exercise.weightType)})</label>
-                  <input type="number" step="0.5" value={editModal.exercise.weightStep || (editModal.exercise.weightType === 'plates-lbs' ? 5 : 2.5)} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, weightStep: parseFloat(e.target.value) || 2.5, weightPreset: 'custom'}})} />
+                  <label>Target Reps</label>
+                  <input type="number" value={editModal.exercise.reps} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, reps: e.target.value}})} placeholder="8" />
                 </div>
-              ) : (
+              </div>
+              <div className="field-row">
                 <div className="field">
-                  <label>Weight Steps ({getWeightUnit(editModal.exercise.weightType)}, comma separated)</label>
-                  <input
-                    value={(editModal.exercise.weightSteps || []).join(', ')}
-                    onChange={(e) => {
-                      const steps = e.target.value.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n))
-                      setEditModal({...editModal, exercise: {...editModal.exercise, weightSteps: steps, weightPreset: 'custom'}})
-                    }}
-                    placeholder="5, 10, 15, 20, 25..."
-                  />
+                  <label>Unit</label>
+                  <select value={editModal.exercise.unit || 'kg'} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, unit: e.target.value}})}>
+                    <option value="kg">kg</option>
+                    <option value="lbs">lbs</option>
+                  </select>
                 </div>
-              )}
+                <div className="field">
+                  <label>Equipment</label>
+                  <select value={editModal.exercise.equipmentType || 'machine'} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, equipmentType: e.target.value}})}>
+                    <option value="machine">Machine</option>
+                    <option value="cable">Cable</option>
+                    <option value="plates">Plates</option>
+                  </select>
+                </div>
+              </div>
+              <div className="field-row">
+                <div className="field">
+                  <label>Start Weight</label>
+                  <input type="number" step="0.5" value={editModal.exercise.startWeight || 5} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, startWeight: parseFloat(e.target.value) || 5}})} />
+                </div>
+                <div className="field">
+                  <label>Increment</label>
+                  <input type="number" step="0.5" value={editModal.exercise.increment || 5} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, increment: parseFloat(e.target.value) || 5}})} />
+                </div>
+                {editModal.exercise.equipmentType === 'plates' && (
+                  <div className="field">
+                    <label>Bar Weight</label>
+                    <input type="number" step="0.5" value={editModal.exercise.barWeight || (editModal.exercise.unit === 'lbs' ? 45 : 20)} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, barWeight: parseFloat(e.target.value) || 20}})} />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="modal-actions">
               <button className="cancel-btn" onClick={() => setEditModal(null)}>Cancel</button>
