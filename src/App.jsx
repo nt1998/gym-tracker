@@ -1317,7 +1317,7 @@ function App() {
         {tab === 'settings' && (
           <div className="settings-page">
             <div className="settings-tabs">
-              <button className={settingsSection === 'sync' ? 'active' : ''} onClick={() => setSettingsSection('sync')}>Sync</button>
+              <button className={settingsSection === 'sync' ? 'active' : ''} onClick={() => setSettingsSection('sync')}>Settings</button>
               <button className={settingsSection === 'routines' ? 'active' : ''} onClick={() => setSettingsSection('routines')}>Routines</button>
             </div>
 
@@ -1360,6 +1360,7 @@ function App() {
                   window.location.reload()
                 }}>Reload App</button>
                 {needsSync && <p className="sync-note" style={{marginTop: '8px'}}>Changes pending sync</p>}
+                <p className="version-text">v0.0.1</p>
               </>
             )}
 
