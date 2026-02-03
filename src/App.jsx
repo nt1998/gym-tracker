@@ -450,9 +450,8 @@ function App() {
     const startWeight = routineTemplate?.startWeight || 5
 
     if (equipType === 'plates') {
-      // For plates, increment is per side, so total change is 2x
-      const step = increment * 2
-      newWeight = Math.max(0, Math.round((currentWeight + delta * step) * 10) / 10)
+      // For plates, increment is total weight change
+      newWeight = Math.max(0, Math.round((currentWeight + delta * increment) * 10) / 10)
     } else {
       // Machine/cable - use generated steps
       const steps = generateWeightSteps(startWeight, increment)
@@ -1454,7 +1453,7 @@ function App() {
                           <div className="exercise-info">
                             <span className="exercise-title">{ex.name}</span>
                             <span className="exercise-sets">
-                              {ex.warmupSets}W + {ex.workSets}S · {ex.reps} reps · {ex.equipmentType === 'plates' ? `±${ex.increment * 2}${ex.unit}` : `${ex.startWeight}-${ex.startWeight + ex.increment * 10}${ex.unit}`}
+                              {ex.warmupSets}W + {ex.workSets}S · {ex.reps} reps · {ex.equipmentType === 'plates' ? `±${ex.increment}${ex.unit}` : `${ex.startWeight}-${ex.startWeight + ex.increment * 10}${ex.unit}`}
                             </span>
                           </div>
                         </div>
