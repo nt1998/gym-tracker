@@ -395,6 +395,27 @@ body:has(textarea:focus) .navbar {
   border-left: 3px solid #89b4fa;
 }
 
+.plate-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #313244;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.plate-info .plate-kg {
+  color: #89b4fa;
+  font-weight: 500;
+}
+
+.plate-info .plate-combo {
+  color: #a6adc8;
+  font-family: monospace;
+}
+
 .notes-section {
   margin-top: auto;
 }

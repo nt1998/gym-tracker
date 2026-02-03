@@ -37,30 +37,66 @@ const weightPresets = {
   'custom': { label: 'Custom', unit: 'kg', type: 'machine', steps: [] }
 }
 
+// Calculate plate combination for a given total weight (per side)
+const getPlatesPerSide = (totalWeight, barWeight, unit) => {
+  const weightPerSide = (totalWeight - barWeight) / 2
+  if (weightPerSide <= 0) return []
+
+  // Available plates (per side) - no 35lbs
+  const plates = unit === 'lbs'
+    ? [45, 25, 10, 5, 2.5]
+    : [20, 10, 5, 2.5, 1.25]
+
+  const result = []
+  let remaining = weightPerSide
+
+  for (const plate of plates) {
+    while (remaining >= plate - 0.01) {
+      result.push(plate)
+      remaining -= plate
+    }
+  }
+
+  return result
+}
+
+// Format plates display (e.g., "45+25+10" or "2×45+25")
+const formatPlates = (plates) => {
+  if (plates.length === 0) return 'bar only'
+
+  const counts = {}
+  plates.forEach(p => counts[p] = (counts[p] || 0) + 1)
+
+  return Object.entries(counts)
+    .sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]))
+    .map(([plate, count]) => count > 1 ? `${count}×${plate}` : plate)
+    .join('+')
+}
+
 const defaultRoutines = {
   push: {
     name: 'Push',
     exercises: [
-      { id: 1, name: 'Incline Chest Press', warmupSets: 2, workSets: 3, reps: '3-15', weightType: 'plates-kg', weightStep: 2.5 },
-      { id: 2, name: 'Butterfly', warmupSets: 1, workSets: 2, reps: '5-8', weightType: 'machine', weightSteps: [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80] },
-      { id: 3, name: 'Lateral Raise Machine', warmupSets: 1, workSets: 2, reps: '5-8', weightType: 'machine', weightSteps: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50] },
-      { id: 4, name: 'Triceps Cable Pushdowns', warmupSets: 1, workSets: 2, reps: '5-8', weightType: 'cable', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-      { id: 5, name: 'Seated Leg Extensions', warmupSets: 1, workSets: 3, reps: '5-10', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-      { id: 6, name: 'Standing Calf Raises', warmupSets: 1, workSets: 3, reps: '5-15', weightType: 'machine', weightSteps: [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120] },
+      { id: 1, name: 'Incline Chest Press', warmupSets: 2, workSets: 3, reps: '8', weightType: 'plates-kg', weightStep: 2.5, barWeight: 20 },
+      { id: 2, name: 'Butterfly', warmupSets: 1, workSets: 2, reps: '8', weightType: 'machine', weightSteps: [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80] },
+      { id: 3, name: 'Lateral Raise Machine', warmupSets: 1, workSets: 2, reps: '8', weightType: 'machine', weightSteps: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50] },
+      { id: 4, name: 'Triceps Cable Pushdowns', warmupSets: 1, workSets: 2, reps: '8', weightType: 'cable', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
+      { id: 5, name: 'Seated Leg Extensions', warmupSets: 1, workSets: 3, reps: '8', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
+      { id: 6, name: 'Standing Calf Raises', warmupSets: 1, workSets: 3, reps: '8', weightType: 'machine', weightSteps: [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120] },
       { id: 7, name: 'Crunch Cable', warmupSets: 0, workSets: 3, reps: '8', weightType: 'cable', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] }
     ]
   },
   pull: {
     name: 'Pull',
     exercises: [
-      { id: 1, name: 'Lat Pulldown', warmupSets: 2, workSets: 2, reps: '5-15', weightType: 'cable', weightSteps: [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120] },
-      { id: 2, name: 'RDL', warmupSets: 2, workSets: 2, reps: '5-10', weightType: 'plates-kg', weightStep: 5 },
-      { id: 3, name: 'Upper Back Row (gray)', warmupSets: 1, workSets: 2, reps: '5-8', weightType: 'machine', weightSteps: [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-      { id: 4, name: 'Low Machine Row', warmupSets: 0, workSets: 2, reps: '4-5', weightType: 'machine', weightSteps: [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-      { id: 5, name: 'Reverse Butterfly', warmupSets: 1, workSets: 1, reps: '5-8', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60] },
-      { id: 6, name: 'Preacher Curl', warmupSets: 1, workSets: 2, reps: '5-10', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60] },
-      { id: 7, name: 'Seated Leg Curl', warmupSets: 1, workSets: 3, reps: '4-15', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
-      { id: 8, name: 'Hip Adduction', warmupSets: 1, workSets: 3, reps: '5-15', weightType: 'machine', weightSteps: [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120] }
+      { id: 1, name: 'Lat Pulldown', warmupSets: 2, workSets: 2, reps: '8', weightType: 'cable', weightSteps: [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120] },
+      { id: 2, name: 'RDL', warmupSets: 2, workSets: 2, reps: '8', weightType: 'plates-kg', weightStep: 5, barWeight: 20 },
+      { id: 3, name: 'Upper Back Row (gray)', warmupSets: 1, workSets: 2, reps: '8', weightType: 'machine', weightSteps: [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
+      { id: 4, name: 'Low Machine Row', warmupSets: 0, workSets: 2, reps: '8', weightType: 'machine', weightSteps: [15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
+      { id: 5, name: 'Reverse Butterfly', warmupSets: 1, workSets: 1, reps: '8', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60] },
+      { id: 6, name: 'Preacher Curl', warmupSets: 1, workSets: 2, reps: '8', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60] },
+      { id: 7, name: 'Seated Leg Curl', warmupSets: 1, workSets: 3, reps: '8', weightType: 'machine', weightSteps: [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100] },
+      { id: 8, name: 'Hip Adduction', warmupSets: 1, workSets: 3, reps: '8', weightType: 'machine', weightSteps: [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120] }
     ]
   }
 }
@@ -879,7 +915,7 @@ function App() {
   const lastExerciseValues = currentExercise ? getLastExerciseValues(currentExercise.name) : { warmupSets: [], workSets: [] }
 
   const openAddExercise = (routineKey) => {
-    setEditModal({ type: 'exercise', routineKey, exercise: { name: '', warmupSets: 1, workSets: 2, reps: '5-8', weightType: 'machine', weightPreset: 'machine-kg-5', weightSteps: weightPresets['machine-kg-5'].steps }, isNew: true })
+    setEditModal({ type: 'exercise', routineKey, exercise: { name: '', warmupSets: 1, workSets: 2, reps: '8', weightType: 'machine', weightPreset: 'machine-kg-5', weightSteps: weightPresets['machine-kg-5'].steps }, isNew: true })
   }
 
   const openEditExercise = (routineKey, exerciseId) => {
@@ -1240,6 +1276,25 @@ function App() {
               {currentExercise.workSets.map((set, idx) => renderSetRow(set, idx, 'work', `${idx + 1}`))}
             </div>
 
+            {(routineTemplate?.weightType === 'plates-kg' || routineTemplate?.weightType === 'plates-lbs') && (() => {
+              // Get the current/last weight being used
+              const lastWorkSet = currentExercise.workSets?.filter(s => s.weight).pop()
+              const weight = parseFloat(lastWorkSet?.weight) || 0
+              if (weight <= 0) return null
+
+              const unit = getWeightUnit(routineTemplate.weightType)
+              const barWeight = routineTemplate.barWeight || (unit === 'lbs' ? 45 : 20)
+              const plates = getPlatesPerSide(weight, barWeight, unit)
+              const kgWeight = unit === 'lbs' ? lbsToKg(weight) : weight
+
+              return (
+                <div className="plate-info">
+                  <span className="plate-kg">{kgWeight}kg</span>
+                  <span className="plate-combo">{formatPlates(plates)}/side</span>
+                </div>
+              )
+            })()}
+
             <div className="notes-section">
               <textarea placeholder="Notes (e.g., seat position, grip width...)" value={currentExercise.notes} onChange={(e) => updateExerciseNote(e.target.value)} />
             </div>
@@ -1449,8 +1504,8 @@ function App() {
                 </div>
               </div>
               <div className="field">
-                <label>Rep Range</label>
-                <input value={editModal.exercise.reps} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, reps: e.target.value}})} placeholder="5-8" />
+                <label>Target Reps</label>
+                <input type="number" value={editModal.exercise.reps} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, reps: e.target.value}})} placeholder="8" />
               </div>
               <div className="field">
                 <label>Weight Type Preset</label>
