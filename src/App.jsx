@@ -1503,15 +1503,15 @@ function App() {
               <div className="field-row">
                 <div className="field">
                   <label>Unit</label>
-                  <input type="text" value={editModal.exercise.unit || 'kg'} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, unit: e.target.value}})} placeholder="kg, lbs, BS..." />
+                  <input type="text" value={editModal.exercise.unit ?? ''} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, unit: e.target.value}})} placeholder="kg" />
                 </div>
                 <div className="field">
                   <label>kg/unit</label>
-                  <input type="number" step="0.1" value={editModal.exercise.kgPerUnit || ''} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, kgPerUnit: parseFloat(e.target.value) || null}})} placeholder="auto" />
+                  <input type="number" step="0.1" value={editModal.exercise.kgPerUnit ?? ''} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, kgPerUnit: e.target.value ? parseFloat(e.target.value) : null}})} placeholder="auto" />
                 </div>
                 <div className="field">
                   <label>Equipment</label>
-                  <select value={editModal.exercise.equipmentType || 'machine'} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, equipmentType: e.target.value}})}>
+                  <select value={editModal.exercise.equipmentType ?? 'machine'} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, equipmentType: e.target.value}})}>
                     <option value="machine">Machine</option>
                     <option value="cable">Cable</option>
                     <option value="plates">Plates</option>
@@ -1521,16 +1521,16 @@ function App() {
               <div className="field-row">
                 <div className="field">
                   <label>Start Weight</label>
-                  <input type="number" step="0.5" value={editModal.exercise.startWeight || 5} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, startWeight: parseFloat(e.target.value) || 5}})} />
+                  <input type="number" step="0.5" value={editModal.exercise.startWeight ?? ''} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, startWeight: e.target.value ? parseFloat(e.target.value) : 0}})} placeholder="5" />
                 </div>
                 <div className="field">
                   <label>Increment</label>
-                  <input type="number" step="0.5" value={editModal.exercise.increment || 5} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, increment: parseFloat(e.target.value) || 5}})} />
+                  <input type="number" step="0.5" value={editModal.exercise.increment ?? ''} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, increment: e.target.value ? parseFloat(e.target.value) : 5}})} placeholder="5" />
                 </div>
                 {editModal.exercise.equipmentType === 'plates' && (
                   <div className="field">
                     <label>Bar Weight</label>
-                    <input type="number" step="0.5" value={editModal.exercise.barWeight || (editModal.exercise.unit === 'lbs' ? 45 : 20)} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, barWeight: parseFloat(e.target.value) || 20}})} />
+                    <input type="number" step="0.5" value={editModal.exercise.barWeight ?? ''} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, barWeight: e.target.value ? parseFloat(e.target.value) : 0}})} placeholder="20" />
                   </div>
                 )}
               </div>
