@@ -24,8 +24,14 @@ const toKg = (weight, unit, kgPerUnit = null) => {
 // Generate weight steps from start, increment, and max
 const generateWeightSteps = (start, increment, max = 200) => {
   const steps = []
-  for (let w = start; w <= max; w += increment) {
+  // Generate steps from 0 to max, using increment
+  for (let w = 0; w <= max; w += increment) {
     steps.push(Math.round(w * 10) / 10)
+  }
+  // Also include the start value if it's not already in steps
+  if (start > 0 && !steps.includes(start)) {
+    steps.push(start)
+    steps.sort((a, b) => a - b)
   }
   return steps
 }
@@ -446,8 +452,7 @@ function App() {
     if (equipType === 'plates') {
       // For plates, increment is per side, so total change is 2x
       const step = increment * 2
-      const barWeight = routineTemplate?.barWeight || (routineTemplate?.unit === 'lbs' ? 45 : 20)
-      newWeight = Math.max(barWeight, Math.round((currentWeight + delta * step) * 10) / 10)
+      newWeight = Math.max(0, Math.round((currentWeight + delta * step) * 10) / 10)
     } else {
       // Machine/cable - use generated steps
       const steps = generateWeightSteps(startWeight, increment)
