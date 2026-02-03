@@ -696,12 +696,21 @@ function App() {
   }
 
   const getAllExercises = () => {
-    const filtered = getFilteredWorkouts()
+    // Include all exercises from routines + any from workout history
     const exercises = new Set()
+    Object.values(routines).forEach(routine => {
+      routine.exercises?.forEach(ex => exercises.add(ex.name))
+    })
+    const filtered = getFilteredWorkouts()
     Object.values(filtered).forEach(w => {
       w.exercises?.forEach(ex => exercises.add(ex.name))
     })
-    return Array.from(exercises).sort()
+    // Sort by max weight (descending)
+    return Array.from(exercises).sort((a, b) => {
+      const statsA = getExerciseStats(a)
+      const statsB = getExerciseStats(b)
+      return statsB.maxWeight - statsA.maxWeight
+    })
   }
 
   const getExerciseStats = (exerciseName) => {
