@@ -1126,9 +1126,7 @@ function App() {
   const renderSetRow = (set, idx, type, label) => {
     const prevSet = type === 'work' ? lastExerciseValues.workSets[idx] : lastExerciseValues.warmupSets[idx]
     const prevWeight = prevSet?.weight || ''
-    // Ignore old range values like "5-8", only use single numbers
-    const rawPrevReps = prevSet?.reps || ''
-    const prevReps = rawPrevReps.includes('-') ? '' : rawPrevReps
+    const prevReps = prevSet?.reps || ''
     const goalReps = routineTemplate?.reps || ''
     const unit = routineTemplate?.unit || 'kg'
 
