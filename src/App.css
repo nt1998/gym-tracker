@@ -109,7 +109,7 @@ body:has(textarea:focus) .navbar {
 
 /* Log page */
 .log-page {
-  padding: 16px;
+  padding: 16px 16px 8px 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -399,7 +399,7 @@ body:has(textarea:focus) .navbar {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .weight-info {
