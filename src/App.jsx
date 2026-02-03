@@ -1255,16 +1255,22 @@ function App() {
             {(() => {
               // Get weight from active set or first work set
               const sets = activeSetIdx.type === 'warmup' ? currentExercise.warmupSets : currentExercise.workSets
-              const activeSet = sets[activeSetIdx.idx] || currentExercise.workSets[0]
+              const activeSet = sets?.[activeSetIdx.idx] || currentExercise.workSets?.[0]
               const weight = parseFloat(activeSet?.weight) || 0
               if (weight <= 0) return null
 
-              const unit = routineTemplate?.unit || 'kg'
+              // Support both old (weightType) and new (unit/equipmentType) formats
+              const weightType = routineTemplate?.weightType
+              const isPlates = routineTemplate?.equipmentType === 'plates' ||
+                weightType === 'plates-kg' || weightType === 'plates-lbs'
+              const unit = routineTemplate?.unit ||
+                (weightType === 'plates-lbs' ? 'lbs' : 'kg')
               const kgPerUnit = routineTemplate?.kgPerUnit
               const kgWeight = toKg(weight, unit, kgPerUnit)
 
-              if (routineTemplate?.equipmentType === 'plates') {
-                const barWeight = routineTemplate.barWeight || 0
+              if (isPlates) {
+                const defaultBar = unit === 'lbs' ? 45 : 20
+                const barWeight = routineTemplate?.barWeight ?? defaultBar
                 const plates = getPlatesPerSide(weight, barWeight, unit)
                 return (
                   <div className="weight-info">
@@ -1283,16 +1289,14 @@ function App() {
               return null
             })()}
 
-            {currentExercise.notes && (
-              <div className="notes-section">
-                <input type="text" value={currentExercise.notes} onChange={(e) => updateExerciseNote(e.target.value)} />
-              </div>
-            )}
-            {!currentExercise.notes && (
-              <div className="notes-section empty" onClick={() => updateExerciseNote(' ')}>
-                <span className="add-note">+ Add note</span>
-              </div>
-            )}
+            <div className="notes-section">
+              <input
+                type="text"
+                value={currentExercise.notes || ''}
+                onChange={(e) => updateExerciseNote(e.target.value)}
+                placeholder="+ Add note"
+              />
+            </div>
 
                       </div>
         )}

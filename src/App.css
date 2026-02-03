@@ -434,14 +434,8 @@ body:has(textarea:focus) .navbar {
   outline: none;
 }
 
-.notes-section.empty {
-  cursor: pointer;
-  opacity: 0.6;
-}
-
-.notes-section .add-note {
+.notes-section input::placeholder {
   color: #6c7086;
-  font-size: 0.85rem;
 }
 
 .sync-status {
