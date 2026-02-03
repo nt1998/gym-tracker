@@ -1126,7 +1126,9 @@ function App() {
   const renderSetRow = (set, idx, type, label) => {
     const prevSet = type === 'work' ? lastExerciseValues.workSets[idx] : lastExerciseValues.warmupSets[idx]
     const prevWeight = prevSet?.weight || ''
-    const prevReps = prevSet?.reps || ''
+    // Ignore old range values like "5-8", only use single numbers
+    const rawPrevReps = prevSet?.reps || ''
+    const prevReps = rawPrevReps.includes('-') ? '' : rawPrevReps
     const goalReps = routineTemplate?.reps || ''
     const unit = routineTemplate?.unit || 'kg'
 
@@ -1268,25 +1270,21 @@ function App() {
               const kgPerUnit = routineTemplate?.kgPerUnit
               const kgWeight = toKg(weight, unit, kgPerUnit)
 
+              // Always show kg, only show plate detail for plate exercises
+              let detail = null
               if (isPlates) {
                 const defaultBar = unit === 'lbs' ? 45 : 20
                 const barWeight = routineTemplate?.barWeight ?? defaultBar
                 const plates = getPlatesPerSide(weight, barWeight, unit)
-                return (
-                  <div className="weight-info">
-                    <span className="weight-kg">{Math.round(kgWeight * 10) / 10}kg</span>
-                    <span className="weight-detail">{formatPlates(plates)}/side</span>
-                  </div>
-                )
-              } else if (unit !== 'kg') {
-                return (
-                  <div className="weight-info">
-                    <span className="weight-kg">{Math.round(kgWeight * 10) / 10}kg</span>
-                    <span className="weight-detail">{weight}{unit}</span>
-                  </div>
-                )
+                detail = `${formatPlates(plates)}/side`
               }
-              return null
+
+              return (
+                <div className="weight-info">
+                  <span className="weight-kg">{Math.round(kgWeight * 10) / 10}kg</span>
+                  {detail && <span className="weight-detail">{detail}</span>}
+                </div>
+              )
             })()}
 
             <div className="notes-section">
