@@ -1257,7 +1257,6 @@ function App() {
               const sets = activeSetIdx.type === 'warmup' ? currentExercise.warmupSets : currentExercise.workSets
               const activeSet = sets?.[activeSetIdx.idx] || currentExercise.workSets?.[0]
               const weight = parseFloat(activeSet?.weight) || 0
-              if (weight <= 0) return null
 
               // Support both old (weightType) and new (unit/equipmentType) formats
               const weightType = routineTemplate?.weightType
@@ -1268,9 +1267,9 @@ function App() {
               const kgPerUnit = routineTemplate?.kgPerUnit
               const kgWeight = toKg(weight, unit, kgPerUnit)
 
-              // Always show kg, only show plate detail for plate exercises
+              // Always show kg, only show plate detail for plate exercises when weight > 0
               let detail = null
-              if (isPlates) {
+              if (isPlates && weight > 0) {
                 const defaultBar = unit === 'lbs' ? 45 : 20
                 const barWeight = routineTemplate?.barWeight ?? defaultBar
                 const plates = getPlatesPerSide(weight, barWeight, unit)
@@ -1279,7 +1278,7 @@ function App() {
 
               return (
                 <div className="weight-info">
-                  <span className="weight-kg">{Math.round(kgWeight * 10) / 10}kg</span>
+                  <span className="weight-kg">{weight > 0 ? `${Math.round(kgWeight * 10) / 10}kg` : '-'}</span>
                   {detail && <span className="weight-detail">{detail}</span>}
                 </div>
               )
