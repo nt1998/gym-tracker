@@ -342,6 +342,11 @@ function App() {
     if (!github.token || !github.repo || !github.owner) return
     if (!force) return // Only sync when forced
 
+    // Only sync committed workouts to GitHub
+    const committedWorkouts = Object.fromEntries(
+      Object.entries(newWorkouts).filter(([, w]) => w.committed)
+    )
+
     try {
       setSyncStatus('Checking...')
       const apiUrl = `https://api.github.com/repos/${github.owner}/${github.repo}/contents/gym.json`
@@ -358,7 +363,7 @@ function App() {
       } catch {}
 
       // Compare local vs remote - only sync if different
-      const localPayload = JSON.stringify({ workouts: newWorkouts, notes: newNotes })
+      const localPayload = JSON.stringify({ workouts: committedWorkouts, notes: newNotes })
       const remotePayload = remoteData ? JSON.stringify({ workouts: remoteData.workouts, notes: remoteData.notes }) : null
 
       if (localPayload === remotePayload) {
@@ -370,7 +375,7 @@ function App() {
       }
 
       setSyncStatus('Syncing...')
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify({ workouts: newWorkouts, notes: newNotes }, null, 2))))
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify({ workouts: committedWorkouts, notes: newNotes }, null, 2))))
       await fetch(apiUrl, {
         method: 'PUT',
         headers: { Authorization: `token ${github.token}`, 'Content-Type': 'application/json' },
