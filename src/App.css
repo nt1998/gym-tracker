@@ -395,6 +395,13 @@ body:has(textarea:focus) .navbar {
   border-left: 3px solid #89b4fa;
 }
 
+.bottom-section {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .weight-info {
   display: flex;
   justify-content: space-between;
@@ -422,7 +429,6 @@ body:has(textarea:focus) .navbar {
   padding: 8px 12px;
   background: #313244;
   border-radius: 8px;
-  margin-top: 8px;
   min-height: 20px;
 }
 

@@ -1252,45 +1252,47 @@ function App() {
               {currentExercise.workSets.map((set, idx) => renderSetRow(set, idx, 'work', `${idx + 1}`))}
             </div>
 
-            {(() => {
-              // Get weight from active set or first work set
-              const sets = activeSetIdx.type === 'warmup' ? currentExercise.warmupSets : currentExercise.workSets
-              const activeSet = sets?.[activeSetIdx.idx] || currentExercise.workSets?.[0]
-              const weight = parseFloat(activeSet?.weight) || 0
+            <div className="bottom-section">
+              {(() => {
+                // Get weight from active set or first work set
+                const sets = activeSetIdx.type === 'warmup' ? currentExercise.warmupSets : currentExercise.workSets
+                const activeSet = sets?.[activeSetIdx.idx] || currentExercise.workSets?.[0]
+                const weight = parseFloat(activeSet?.weight) || 0
 
-              // Support both old (weightType) and new (unit/equipmentType) formats
-              const weightType = routineTemplate?.weightType
-              const isPlates = routineTemplate?.equipmentType === 'plates' ||
-                weightType === 'plates-kg' || weightType === 'plates-lbs'
-              const unit = routineTemplate?.unit ||
-                (weightType === 'plates-lbs' ? 'lbs' : 'kg')
-              const kgPerUnit = routineTemplate?.kgPerUnit
-              const kgWeight = toKg(weight, unit, kgPerUnit)
+                // Support both old (weightType) and new (unit/equipmentType) formats
+                const weightType = routineTemplate?.weightType
+                const isPlates = routineTemplate?.equipmentType === 'plates' ||
+                  weightType === 'plates-kg' || weightType === 'plates-lbs'
+                const unit = routineTemplate?.unit ||
+                  (weightType === 'plates-lbs' ? 'lbs' : 'kg')
+                const kgPerUnit = routineTemplate?.kgPerUnit
+                const kgWeight = toKg(weight, unit, kgPerUnit)
 
-              // Always show kg, only show plate detail for plate exercises when weight > 0
-              let detail = null
-              if (isPlates && weight > 0) {
-                const defaultBar = unit === 'lbs' ? 45 : 20
-                const barWeight = routineTemplate?.barWeight ?? defaultBar
-                const plates = getPlatesPerSide(weight, barWeight, unit)
-                detail = `${formatPlates(plates)}/side`
-              }
+                // Always show kg, only show plate detail for plate exercises when weight > 0
+                let detail = null
+                if (isPlates && weight > 0) {
+                  const defaultBar = unit === 'lbs' ? 45 : 20
+                  const barWeight = routineTemplate?.barWeight ?? defaultBar
+                  const plates = getPlatesPerSide(weight, barWeight, unit)
+                  detail = `${formatPlates(plates)}/side`
+                }
 
-              return (
-                <div className="weight-info">
-                  <span className="weight-kg">{weight > 0 ? `${Math.round(kgWeight * 10) / 10}kg` : '-'}</span>
-                  {detail && <span className="weight-detail">{detail}</span>}
-                </div>
-              )
-            })()}
+                return (
+                  <div className="weight-info">
+                    <span className="weight-kg">{weight > 0 ? `${Math.round(kgWeight * 10) / 10}kg` : '-'}</span>
+                    {detail && <span className="weight-detail">{detail}</span>}
+                  </div>
+                )
+              })()}
 
-            <div className="notes-section">
-              <input
-                type="text"
-                value={currentExercise.notes || ''}
-                onChange={(e) => updateExerciseNote(e.target.value)}
-                placeholder="+ Add note"
-              />
+              <div className="notes-section">
+                <input
+                  type="text"
+                  value={currentExercise.notes || ''}
+                  onChange={(e) => updateExerciseNote(e.target.value)}
+                  placeholder="+ Add note"
+                />
+              </div>
             </div>
 
                       </div>
