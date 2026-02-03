@@ -395,7 +395,7 @@ body:has(textarea:focus) .navbar {
   border-left: 3px solid #89b4fa;
 }
 
-.plate-info {
+.weight-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -403,38 +403,45 @@ body:has(textarea:focus) .navbar {
   background: #313244;
   border-radius: 8px;
   font-size: 0.85rem;
-  margin-bottom: 8px;
 }
 
-.plate-info .plate-kg {
+.weight-info .weight-kg {
   color: #89b4fa;
   font-weight: 500;
 }
 
-.plate-info .plate-combo {
+.weight-info .weight-detail {
   color: #a6adc8;
   font-family: monospace;
 }
 
 .notes-section {
-  margin-top: auto;
-}
-
-.notes-section textarea {
-  width: 100%;
-  min-height: 50px;
-  padding: 12px;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
   background: #313244;
-  border: none;
-  border-radius: 10px;
-  color: #cdd6f4;
-  font-size: 0.9rem;
-  resize: none;
-  font-family: inherit;
+  border-radius: 8px;
+  margin-top: 8px;
 }
 
-.notes-section textarea::placeholder {
+.notes-section input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #cdd6f4;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.notes-section.empty {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.notes-section .add-note {
   color: #6c7086;
+  font-size: 0.85rem;
 }
 
 .sync-status {
