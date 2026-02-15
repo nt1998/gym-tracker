@@ -786,40 +786,6 @@ function App() {
     return { maxWeight: Math.round(maxWeight * 10) / 10, maxRepsAtMaxWeight }
   }
 
-  // Check if today's exercise beats the PR (based on best committed set)
-  // Read directly from workouts state to ensure fresh values
-  const getExercisePRStatus = (exerciseName) => {
-    const pr = getExercisePR(exerciseName)
-    const todayWorkout = workouts[date]
-    const ex = todayWorkout?.exercises?.find(e => e.name === exerciseName)
-    if (!ex) return { isWeightPR: false, isRepPR: false }
-
-    let bestWeight = 0
-    let bestRepsAtBestWeight = 0
-
-    // Find best committed set from today
-    ex.workSets?.forEach(set => {
-      if (!set.committed) return
-      const weight = parseFloat(set.weight) || 0
-      const reps = parseInt(set.reps) || 0
-      if (weight > 0 && reps > 0) {
-        if (weight > bestWeight) {
-          bestWeight = weight
-          bestRepsAtBestWeight = reps
-        } else if (weight === bestWeight && reps > bestRepsAtBestWeight) {
-          bestRepsAtBestWeight = reps
-        }
-      }
-    })
-
-    if (bestWeight <= 0) return { isWeightPR: false, isRepPR: false }
-
-    const isWeightPR = bestWeight > pr.maxWeight
-    const isRepPR = bestWeight === pr.maxWeight && bestRepsAtBestWeight > pr.maxRepsAtMaxWeight
-
-    return { isWeightPR, isRepPR }
-  }
-
   const getWorkoutDayStats = (workoutDate) => {
     const w = workouts[workoutDate]
     if (!w) return null
@@ -864,6 +830,7 @@ function App() {
         const prevEx = workout.exercises?.find(e => e.name === ex.name)
         if (prevEx) {
           prevEx.workSets?.forEach(set => {
+            if (set.committed === false) return
             const weight = toKg(set.weight, config.unit, config.kgPerUnit)
             const reps = parseInt(set.reps) || 0
             if (weight > maxWeightBefore) {
@@ -881,6 +848,7 @@ function App() {
       let bestReps = 0
       let totalVolume = 0
       ex.workSets?.forEach(set => {
+        if (set.committed === false) return
         const weight = toKg(set.weight, config.unit, config.kgPerUnit)
         const reps = parseInt(set.reps) || 0
         if (weight > 0 && reps > 0) {
@@ -1117,7 +1085,7 @@ function App() {
   }
 
   const getLastExerciseData = (exerciseName) => {
-    const sortedDates = Object.keys(workouts).filter(d => d < date).sort().reverse()
+    const sortedDates = Object.keys(workouts).filter(d => d < date && workouts[d].committed).sort().reverse()
     for (const d of sortedDates) {
       const w = workouts[d]
       const ex = w.exercises?.find(e => e.name === exerciseName)
@@ -1131,15 +1099,15 @@ function App() {
 
   const lastData = currentExercise ? getLastExerciseData(currentExercise.name) : null
 
-  // Check if a specific set beats the PR (comparing in kg)
+  // Check if a specific set beats the PR (comparing in kg, rounded to match PR precision)
   const isSetPR = (exerciseName, weight, reps) => {
     const pr = getExercisePR(exerciseName)
     const config = getExerciseConfig(exerciseName)
-    const w = toKg(weight, config.unit, config.kgPerUnit)
+    const w = Math.round(toKg(weight, config.unit, config.kgPerUnit) * 10) / 10
     const r = parseInt(reps) || 0
     if (w <= 0 || r <= 0) return { isWeightPR: false, isRepPR: false }
     const isWeightPR = w > pr.maxWeight
-    const isRepPR = !isWeightPR && Math.abs(w - pr.maxWeight) < 0.1 && r > pr.maxRepsAtMaxWeight
+    const isRepPR = !isWeightPR && w === pr.maxWeight && r > pr.maxRepsAtMaxWeight
     return { isWeightPR, isRepPR }
   }
 
@@ -1241,9 +1209,9 @@ function App() {
                   bestReps = r
                 }
               })
-              const bestWeightKg = toKg(bestWeightNative, unit, kgPerUnit)
+              const bestWeightKg = Math.round(toKg(bestWeightNative, unit, kgPerUnit) * 10) / 10
               const isWeightPR = bestWeightKg > pr.maxWeight
-              const isRepPR = !isWeightPR && Math.abs(bestWeightKg - pr.maxWeight) < 0.1 && bestReps > pr.maxRepsAtMaxWeight
+              const isRepPR = !isWeightPR && bestWeightKg === pr.maxWeight && bestReps > pr.maxRepsAtMaxWeight
               const lastDataKg = lastData ? toKg(lastData.weight, unit, kgPerUnit) : 0
 
               if (pr.maxWeight > 0 || isWeightPR || isRepPR) {
