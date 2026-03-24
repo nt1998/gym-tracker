@@ -1007,3 +1007,220 @@ body:has(textarea:focus) .navbar {
   color: #6c7086;
   font-size: 0.8rem;
 }
+
+/* Template notes (shown during workout) */
+.template-notes {
+  padding: 8px 12px;
+  background: #2a3a4a;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #89b4fa;
+  border-left: 3px solid #89b4fa;
+  line-height: 1.4;
+}
+
+/* Warmup cards in carousel */
+.template-notes.warmup-notes {
+  border-left-color: #a6e3a1;
+  background: #1e3a2e;
+  color: #a6e3a1;
+}
+
+.warmup-set-reps {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #cdd6f4;
+}
+
+/* Rest day log view */
+.rest-log {
+  padding: 16px !important;
+  overflow-y: auto !important;
+  touch-action: auto !important;
+  height: auto !important;
+}
+
+.rest-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.rest-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #cdd6f4;
+}
+
+.rest-schedule {
+  font-size: 0.8rem;
+  color: #6c7086;
+}
+
+.rest-block {
+  margin-bottom: 16px;
+}
+
+.rest-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #1e3a2e;
+  border-radius: 8px 8px 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #a6e3a1;
+}
+
+.rest-block-duration {
+  font-size: 0.75rem;
+  color: #6c7086;
+  font-weight: 400;
+}
+
+.rest-exercise {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #313244;
+  cursor: pointer;
+  border-bottom: 1px solid #3a3a4a;
+}
+
+.rest-exercise:last-child {
+  border-bottom: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.rest-exercise.checked {
+  opacity: 0.5;
+}
+
+.rest-check {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #a6e3a1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: #a6e3a1;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.rest-exercise.checked .rest-check {
+  background: #a6e3a1;
+  color: #1e1e2e;
+}
+
+.rest-exercise-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.rest-exercise-name {
+  font-size: 0.9rem;
+  color: #cdd6f4;
+  font-weight: 500;
+}
+
+.rest-exercise-detail {
+  font-size: 0.8rem;
+  color: #89b4fa;
+  font-weight: 500;
+}
+
+.rest-exercise-notes {
+  font-size: 0.7rem;
+  color: #6c7086;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.commit-rest-btn {
+  width: 100%;
+  padding: 14px;
+  background: #a6e3a1;
+  border: none;
+  border-radius: 10px;
+  color: #1e1e2e;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 16px;
+}
+
+.commit-rest-btn.committed {
+  background: #45475a;
+  color: #a6e3a1;
+}
+
+/* Routine editor improvements */
+.routine-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.routine-section-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #89b4fa;
+}
+
+.routine-schedule {
+  font-size: 0.75rem;
+  color: #6c7086;
+}
+
+.subsection-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #a6adc8;
+  text-transform: uppercase;
+  margin: 12px 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.subsection-duration {
+  font-weight: 400;
+  color: #6c7086;
+  text-transform: none;
+}
+
+.exercise-item.warmup-type {
+  background: #1e3a2e;
+  border-left: 3px solid #a6e3a1;
+}
+
+.exercise-item.rest-type {
+  background: #2a2a3a;
+  border-left: 3px solid #89b4fa;
+}
+
+.exercise-template-notes {
+  display: block;
+  font-size: 0.65rem;
+  color: #89b4fa;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.add-btn-small {
+  padding: 8px;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.routine-section h3 {
+  margin: 0;
+}
