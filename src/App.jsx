@@ -85,7 +85,7 @@ const defaultRoutines = {
     exercises: [
       { id: 1, name: 'Pushdown', warmupSets: 2, workSets: 2, reps: '15-20', unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15, templateNotes: '3s ecc / 3s con · Stop 15° before lockout · Pain ≤3/10' },
       { id: 2, name: 'Lateral Raise Machine', warmupSets: 2, workSets: 2, reps: '10-15', unit: 'lbs', equipmentType: 'machine', startWeight: 5, increment: 5, templateNotes: 'Small muscle, long lever — heavier isn\'t better here' },
-      { id: 3, name: 'Incline Chest Press', warmupSets: 2, workSets: 2, reps: '8-12', unit: 'lbs', equipmentType: 'plates', startWeight: 0, increment: 5, barWeight: 0, templateNotes: 'Stop 2-3cm before lockout' },
+      { id: 3, name: 'Incline Chest Press', warmupSets: 3, workSets: 2, reps: '8-12', unit: 'lbs', equipmentType: 'plates', startWeight: 0, increment: 5, barWeight: 0, templateNotes: 'Stop 2-3cm before lockout' },
       { id: 4, name: 'Butterfly', warmupSets: 1, workSets: 2, reps: '10-15', unit: 'kg', equipmentType: 'machine', startWeight: 7, increment: 7, templateNotes: 'Heavy flyes stress shoulder joint at stretch — higher reps safer' },
       { id: 5, name: 'Seated Leg Extensions', warmupSets: 3, workSets: 1, reps: '12-15', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5, templateNotes: 'No knee lockout · First warmup = joint prep, no weight' },
       { id: 6, name: 'Standing Calf Raises', warmupSets: 1, workSets: 1, reps: '15-20', unit: 'lbs', equipmentType: 'machine', startWeight: 45, increment: 10, templateNotes: 'Slow 3s ecc · Heel STRAIGHT · Limit depth if snapping' },
@@ -100,8 +100,8 @@ const defaultRoutines = {
     ],
     exercises: [
       { id: 1, name: 'Preacher Curl', warmupSets: 1, workSets: 2, reps: '4-8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
-      { id: 2, name: 'RDL', warmupSets: 2, workSets: 1, reps: '4-8', unit: 'kg', equipmentType: 'plates', startWeight: 20, increment: 5, barWeight: 20 },
-      { id: 3, name: 'Lat Pulldown', warmupSets: 1, workSets: 2, reps: '4-8', unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15 },
+      { id: 2, name: 'RDL', warmupSets: 3, workSets: 1, reps: '4-8', unit: 'kg', equipmentType: 'plates', startWeight: 20, increment: 5, barWeight: 20 },
+      { id: 3, name: 'Lat Pulldown', warmupSets: 3, workSets: 2, reps: '4-8', unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15 },
       { id: 4, name: 'Chest-Supported Row', warmupSets: 1, workSets: 1, reps: '4-8', unit: 'lbs', equipmentType: 'machine', startWeight: 30, increment: 10 },
       { id: 5, name: 'Reverse Butterfly', warmupSets: 1, workSets: 1, reps: '4-8', unit: 'kg', equipmentType: 'machine', startWeight: 7, increment: 7 },
       { id: 6, name: 'Crunch Cable', warmupSets: 1, workSets: 2, reps: '4-8', unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15 },
