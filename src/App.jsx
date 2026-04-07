@@ -24,14 +24,8 @@ const toKg = (weight, unit, kgPerUnit = null) => {
 // Generate weight steps from start, increment, and max
 const generateWeightSteps = (start, increment, max = 200) => {
   const steps = []
-  // Generate steps from 0 to max, using increment
-  for (let w = 0; w <= max; w += increment) {
+  for (let w = start; w <= max; w += increment) {
     steps.push(Math.round(w * 10) / 10)
-  }
-  // Also include the start value if it's not already in steps
-  if (start > 0 && !steps.includes(start)) {
-    steps.push(start)
-    steps.sort((a, b) => a - b)
   }
   return steps
 }
@@ -88,7 +82,7 @@ const defaultRoutines = {
       { id: 3, name: 'Incline Chest Press', warmupSets: 3, workSets: 2, reps: '8-12', unit: 'lbs', equipmentType: 'plates', startWeight: 0, increment: 5, barWeight: 0, templateNotes: 'Stop 2-3cm before lockout' },
       { id: 4, name: 'Butterfly', warmupSets: 1, workSets: 2, reps: '10-15', unit: 'kg', equipmentType: 'machine', startWeight: 7, increment: 7, templateNotes: 'Heavy flyes stress shoulder joint at stretch — higher reps safer' },
       { id: 5, name: 'Seated Leg Extensions', warmupSets: 3, workSets: 1, reps: '12-15', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5, templateNotes: 'No knee lockout · First warmup = joint prep, no weight' },
-      { id: 6, name: 'Standing Calf Raises', warmupSets: 1, workSets: 1, reps: '15-20', unit: 'lbs', equipmentType: 'machine', startWeight: 45, increment: 10, templateNotes: 'Slow 3s ecc · Heel STRAIGHT · Limit depth if snapping' },
+      { id: 6, name: 'Standing Calf Raises', warmupSets: 1, workSets: 1, reps: '15-20', unit: 'kg', equipmentType: 'machine', startWeight: 35, increment: 10, templateNotes: 'Slow 3s ecc · Heel STRAIGHT · Limit depth if snapping' },
     ]
   },
   pull: {
@@ -100,13 +94,13 @@ const defaultRoutines = {
     ],
     exercises: [
       { id: 1, name: 'Preacher Curl', warmupSets: 1, workSets: 2, reps: '4-8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
-      { id: 2, name: 'RDL', warmupSets: 3, workSets: 1, reps: '4-8', unit: 'kg', equipmentType: 'plates', startWeight: 20, increment: 5, barWeight: 20 },
+      { id: 2, name: 'RDL', warmupSets: 3, workSets: 1, reps: '4-8', unit: 'lbs', equipmentType: 'plates', startWeight: 25, increment: 5, barWeight: 25 },
       { id: 3, name: 'Lat Pulldown', warmupSets: 3, workSets: 2, reps: '4-8', unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15 },
       { id: 4, name: 'Chest-Supported Row', warmupSets: 1, workSets: 1, reps: '4-8', unit: 'lbs', equipmentType: 'machine', startWeight: 30, increment: 10 },
       { id: 5, name: 'Reverse Butterfly', warmupSets: 1, workSets: 1, reps: '4-8', unit: 'kg', equipmentType: 'machine', startWeight: 7, increment: 7 },
       { id: 6, name: 'Crunch Cable', warmupSets: 1, workSets: 2, reps: '4-8', unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15 },
       { id: 7, name: 'Hip Adduction', warmupSets: 1, workSets: 1, reps: '12-15', unit: 'lbs', equipmentType: 'machine', startWeight: 20, increment: 10, templateNotes: 'Superset with abduction' },
-      { id: 8, name: 'Hip Abduction Machine', warmupSets: 1, workSets: 1, reps: '12-15', unit: 'lbs', equipmentType: 'machine', startWeight: 20, increment: 10, templateNotes: 'Glute medius — patellar tracking · Superset with adduction' },
+      { id: 8, name: 'Hip Abduction', warmupSets: 1, workSets: 1, reps: '12-15', unit: 'lbs', equipmentType: 'machine', startWeight: 20, increment: 10, templateNotes: 'Glute medius — patellar tracking · Superset with adduction' },
     ]
   },
   rest: {
@@ -221,9 +215,13 @@ function App() {
   useEffect(() => {
     const savedWorkouts = localStorage.getItem('gymtracker_workouts')
     if (savedWorkouts) setWorkouts(JSON.parse(savedWorkouts))
-    // Always use defaultRoutines to ensure new format with correct units
-    localStorage.setItem('gymtracker_routines', JSON.stringify(defaultRoutines))
-    setRoutines(defaultRoutines)
+    const savedRoutines = localStorage.getItem('gymtracker_routines')
+    if (savedRoutines) {
+      setRoutines(JSON.parse(savedRoutines))
+    } else {
+      localStorage.setItem('gymtracker_routines', JSON.stringify(defaultRoutines))
+      setRoutines(defaultRoutines)
+    }
     const savedNotes = localStorage.getItem('gymtracker_notes')
     if (savedNotes) setExerciseNotes(JSON.parse(savedNotes))
     const savedLastSync = localStorage.getItem('gymtracker_lastsync')
@@ -309,6 +307,12 @@ function App() {
       if (routinesRes.ok) {
         const file = await routinesRes.json()
         const data = JSON.parse(decodeURIComponent(escape(atob(file.content))))
+        // Normalize units to lowercase (Lbs → lbs, Kg → kg)
+        for (const routine of Object.values(data)) {
+          for (const ex of routine.exercises || []) {
+            if (ex.unit) ex.unit = ex.unit.toLowerCase()
+          }
+        }
         setRoutines(data)
         localStorage.setItem('gymtracker_routines', JSON.stringify(data))
       }
@@ -400,20 +404,21 @@ function App() {
         workSets: Array(ex.workSets).fill().map(() => ({ weight: '', reps: '', committed: false })),
         notes: exerciseNotes[ex.name] || ''
       })),
-      warmupChecks: (currentRoutine.warmups || []).map(w => (w.checks || ['']).map(() => false)),
+      warmupChecks: (currentRoutine.warmups || []).map(() => false),
       completed: false
     }
   }
 
   const workout = getWorkout()
   const warmups = currentRoutine?.warmups || []
-  const warmupCount = warmups.length
-  const isOnWarmup = currentExerciseIdx < warmupCount
-  const currentWarmup = isOnWarmup ? warmups[currentExerciseIdx] : null
-  const exerciseIdx = isOnWarmup ? -1 : currentExerciseIdx - warmupCount
+  const hasWarmups = warmups.length > 0
+  // Warmup is a single page at index 0 (if any warmups exist), exercises follow
+  const isOnWarmup = hasWarmups && currentExerciseIdx === 0
+  const currentWarmup = null // no longer per-warmup page
+  const exerciseIdx = hasWarmups ? currentExerciseIdx - 1 : currentExerciseIdx
   const currentExercise = isOnWarmup ? null : workout.exercises[exerciseIdx]
   const routineTemplate = currentExercise ? (currentRoutine?.exercises.find(e => e.id === currentExercise?.id) || currentRoutine?.exercises[exerciseIdx]) : null
-  const totalItems = warmupCount + workout.exercises.length
+  const totalItems = (hasWarmups ? 1 : 0) + workout.exercises.length
 
   const saveAll = (newWorkouts, newNotes, forceSync = false) => {
     localStorage.setItem('gymtracker_workouts', JSON.stringify(newWorkouts))
@@ -502,6 +507,7 @@ function App() {
     const newWorkout = JSON.parse(JSON.stringify(workout))
     const sets = type === 'warmup' ? newWorkout.exercises[exerciseIdx].warmupSets : newWorkout.exercises[exerciseIdx].workSets
     sets[setIdx] = { ...sets[setIdx], [field]: value }
+    if (field === 'weight' && value) sets[setIdx].unit = routineTemplate?.unit || 'kg'
     if (autoCommit) sets[setIdx].committed = true
     const newWorkouts = { ...workouts, [date]: newWorkout }
     setWorkouts(newWorkouts)
@@ -521,7 +527,10 @@ function App() {
       // Commit - use current values or previous values
       const prevSets = type === 'warmup' ? lastExerciseValues.warmupSets : lastExerciseValues.workSets
       const prevSet = prevSets[setIdx]
-      if (!set.weight && prevSet?.weight) set.weight = prevSet.weight
+      if (!set.weight && prevSet?.weight) {
+        set.weight = prevSet.weight
+        set.unit = prevSet.unit || routineTemplate?.unit || 'kg'
+      }
       if (!set.reps && prevSet?.reps) set.reps = prevSet.reps
       set.committed = true
     }
@@ -568,6 +577,7 @@ function App() {
     const newWorkout = JSON.parse(JSON.stringify(workout))
     const newSets = type === 'warmup' ? newWorkout.exercises[exerciseIdx].warmupSets : newWorkout.exercises[exerciseIdx].workSets
     newSets[setIdx].weight = newWeight.toString()
+    newSets[setIdx].unit = routineTemplate?.unit || 'kg'
     if (!newSets[setIdx].reps && prevSets[setIdx]?.reps) {
       newSets[setIdx].reps = prevSets[setIdx].reps
     }
@@ -593,6 +603,7 @@ function App() {
     newSets[setIdx].reps = newReps.toString()
     if (!newSets[setIdx].weight && prevSets[setIdx]?.weight) {
       newSets[setIdx].weight = prevSets[setIdx].weight
+      newSets[setIdx].unit = prevSets[setIdx].unit || routineTemplate?.unit || 'kg'
     }
     newSets[setIdx].committed = true
     const newWorkouts = { ...workouts, [date]: newWorkout }
@@ -652,7 +663,7 @@ function App() {
         workSets: Array(ex.workSets).fill().map(() => ({ weight: '', reps: '', committed: false })),
         notes: exerciseNotes[ex.name] || ''
       })),
-      warmupChecks: (routine.warmups || []).map(w => (w.checks || ['']).map(() => false)),
+      warmupChecks: (routine.warmups || []).map(() => false),
       completed: false
     }
     const newWorkouts = { ...workouts, [date]: newWorkout }
@@ -669,11 +680,13 @@ function App() {
     saveAll(newWorkouts, exerciseNotes, true)
   }
 
-  const toggleWarmupCheck = (warmupIdx, checkIdx) => {
+  const toggleWarmupCheck = (warmupIdx) => {
     const newWorkout = JSON.parse(JSON.stringify(workout))
-    if (!newWorkout.warmupChecks) newWorkout.warmupChecks = (currentRoutine.warmups || []).map(w => (w.checks || ['']).map(() => false))
-    if (!newWorkout.warmupChecks[warmupIdx]) newWorkout.warmupChecks[warmupIdx] = (currentRoutine.warmups[warmupIdx]?.checks || ['']).map(() => false)
-    newWorkout.warmupChecks[warmupIdx][checkIdx] = !newWorkout.warmupChecks[warmupIdx][checkIdx]
+    if (!Array.isArray(newWorkout.warmupChecks) || newWorkout.warmupChecks.some(v => Array.isArray(v))) {
+      // Initialize or convert from old per-check format to flat boolean array
+      newWorkout.warmupChecks = (currentRoutine.warmups || []).map(() => false)
+    }
+    newWorkout.warmupChecks[warmupIdx] = !newWorkout.warmupChecks[warmupIdx]
     const newWorkouts = { ...workouts, [date]: newWorkout }
     setWorkouts(newWorkouts)
     saveAll(newWorkouts, exerciseNotes)
@@ -802,7 +815,7 @@ function App() {
         let maxWeight = 0
         let maxOneRM = 0
         ex.workSets?.forEach(set => {
-          const weight = toKg(set.weight, config.unit, config.kgPerUnit)
+          const weight = toKg(set.weight, set.unit || config.unit, config.kgPerUnit)
           const reps = parseInt(set.reps) || 0
           if (weight > 0 && reps > 0) {
             if (weight > maxWeight) maxWeight = weight
@@ -848,7 +861,7 @@ function App() {
       const ex = w.exercises?.find(e => e.name === exerciseName)
       if (ex) {
         ex.workSets?.forEach(set => {
-          const weight = toKg(set.weight, config.unit, config.kgPerUnit)
+          const weight = toKg(set.weight, set.unit || config.unit, config.kgPerUnit)
           const reps = parseInt(set.reps) || 0
           if (weight > 0 && reps > 0) {
             totalSets++
@@ -866,12 +879,22 @@ function App() {
   }
 
   // Get exercise config from routines
+  // Fallback config for exercises no longer in routines
+  const retiredExercises = {
+    'Triceps Cable Pushdowns': { unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15 },
+    'Upper Back Row (gray)': { unit: 'lbs', equipmentType: 'machine', startWeight: 30, increment: 10 },
+    'Low Machine Row': { unit: 'lbs', equipmentType: 'plates', startWeight: 0, increment: 5, barWeight: 0 },
+    'Reverse Grip Pushdown': { unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15 },
+    'Seated Leg Curl': { unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5, kgPerUnit: 5 },
+    'Hip Abduction Machine': { unit: 'lbs', equipmentType: 'machine', startWeight: 20, increment: 10 },
+  }
+
   const getExerciseConfig = (exerciseName) => {
     for (const routine of Object.values(routines)) {
       const ex = routine.exercises?.find(e => e.name === exerciseName)
       if (ex) return ex
     }
-    return { unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 }
+    return retiredExercises[exerciseName] || { unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 }
   }
 
   const getExercisePR = (exerciseName) => {
@@ -887,7 +910,7 @@ function App() {
         ex.workSets?.forEach(set => {
           // Only count sets that are committed (or old data without committed flag)
           if (set.committed === false) return
-          const weight = toKg(set.weight, config.unit, config.kgPerUnit)
+          const weight = toKg(set.weight, set.unit || config.unit, config.kgPerUnit)
           const reps = parseInt(set.reps) || 0
           if (weight > 0 && reps > 0) {
             if (weight > maxWeight) {
@@ -915,7 +938,7 @@ function App() {
     w.exercises?.forEach(ex => {
       const config = getExerciseConfig(ex.name)
       ;[...(ex.warmupSets || []), ...(ex.workSets || [])].forEach(set => {
-        const weight = toKg(set.weight, config.unit, config.kgPerUnit)
+        const weight = toKg(set.weight, set.unit || config.unit, config.kgPerUnit)
         const reps = parseInt(set.reps) || 0
         if (weight > 0 && reps > 0) {
           totalWeight += weight * reps
@@ -949,7 +972,7 @@ function App() {
         if (prevEx) {
           prevEx.workSets?.forEach(set => {
             if (set.committed === false) return
-            const weight = toKg(set.weight, config.unit, config.kgPerUnit)
+            const weight = toKg(set.weight, set.unit || config.unit, config.kgPerUnit)
             const reps = parseInt(set.reps) || 0
             if (weight > maxWeightBefore) {
               maxWeightBefore = weight
@@ -967,7 +990,7 @@ function App() {
       let totalVolume = 0
       ex.workSets?.forEach(set => {
         if (set.committed === false) return
-        const weight = toKg(set.weight, config.unit, config.kgPerUnit)
+        const weight = toKg(set.weight, set.unit || config.unit, config.kgPerUnit)
         const reps = parseInt(set.reps) || 0
         if (weight > 0 && reps > 0) {
           totalVolume += weight * reps
@@ -1489,9 +1512,9 @@ function App() {
             <div className="exercise-nav">
               <button onClick={prevExercise} disabled={currentExerciseIdx === 0}>&lt;</button>
               <div className="exercise-info-center">
-                <h2 className="exercise-name">{isOnWarmup ? currentWarmup.name : currentExercise.name}</h2>
+                <h2 className="exercise-name">{isOnWarmup ? 'Warm-up' : currentExercise.name}</h2>
                 <span className="exercise-count">
-                  {isOnWarmup ? `W${currentExerciseIdx + 1}` : `${exerciseIdx + 1} / ${workout.exercises.length}`}
+                  {isOnWarmup ? '' : `${exerciseIdx + 1} / ${workout.exercises.length}`}
                   {!isOnWarmup && routineTemplate?.reps && ` · ${routineTemplate.reps} reps`}
                   {!isOnWarmup && workout.committed && ' ✓'}
                 </span>
@@ -1506,34 +1529,31 @@ function App() {
             </div>
 
             {isOnWarmup ? (
-              <>
-                {currentWarmup.notes && (
-                  <div className="template-notes warmup-notes">{currentWarmup.notes}</div>
-                )}
-
-                <div className="sets-section">
-                  <div className="sets-label">{currentWarmup.reps} each</div>
-                  {(currentWarmup.checks || ['Done']).map((checkLabel, idx) => {
-                    const checked = workout.warmupChecks?.[currentExerciseIdx]?.[idx] || false
-                    return (
-                      <div
-                        key={idx}
-                        className={`set-row work ${checked ? 'committed' : 'uncommitted'}`}
-                        onClick={() => toggleWarmupCheck(currentExerciseIdx, idx)}
-                      >
-                        <div className="set-controls">
-                          <span className={`set-label clickable ${checked ? '' : ''}`}>
-                            {checked ? '✓' : ''}
-                          </span>
-                          <span className="warmup-set-reps">{checkLabel}</span>
+              <div className="warmup-all">
+                {warmups.map((wu, wuIdx) => {
+                  const isChecked = workout.warmupChecks?.[wuIdx] === true
+                  const desc = [
+                    wu.checks?.join(', '),
+                    wu.notes
+                  ].filter(Boolean).join(' · ')
+                  return (
+                    <div
+                      key={wu.id}
+                      className={`warmup-block ${isChecked ? 'checked' : ''}`}
+                      onClick={() => toggleWarmupCheck(wuIdx)}
+                    >
+                      <div className="warmup-check-box">{isChecked ? '✓' : ''}</div>
+                      <div className="warmup-block-info">
+                        <div className="warmup-block-header">
+                          <span className="warmup-block-name">{wu.name}</span>
+                          <span className="warmup-block-reps">{wu.reps}</span>
                         </div>
+                        {desc && <div className="warmup-block-notes">{desc}</div>}
                       </div>
-                    )
-                  })}
-                </div>
-
-                <div className="bottom-section" />
-              </>
+                    </div>
+                  )
+                })}
+              </div>
             ) : (
               <>
                 {(() => {
@@ -2194,11 +2214,10 @@ function App() {
               <div className="field-row">
                 <div className="field">
                   <label>Unit</label>
-                  <input type="text" value={editModal.exercise.unit ?? ''} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, unit: e.target.value}})} onBlur={(e) => !e.target.value && setEditModal({...editModal, exercise: {...editModal.exercise, unit: 'kg'}})} onFocus={(e) => e.target.select()} placeholder="kg" />
-                </div>
-                <div className="field">
-                  <label>kg/unit</label>
-                  <input type="number" step="0.1" value={editModal.exercise.kgPerUnit ?? ''} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, kgPerUnit: e.target.value === '' ? null : parseFloat(e.target.value)}})} onFocus={(e) => e.target.select()} placeholder="auto" />
+                  <select value={editModal.exercise.unit ?? 'kg'} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, unit: e.target.value}})}>
+                    <option value="kg">kg</option>
+                    <option value="lbs">lbs</option>
+                  </select>
                 </div>
                 <div className="field">
                   <label>Equipment</label>
