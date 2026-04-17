@@ -23,7 +23,9 @@ html, body, #root {
 }
 
 body {
-  touch-action: pan-y;
+  position: fixed;
+  width: 100%;
+  touch-action: manipulation;
   overscroll-behavior: none;
 }
 
