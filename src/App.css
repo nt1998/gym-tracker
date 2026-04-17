@@ -4,6 +4,12 @@
   flex-direction: column;
   background: radial-gradient(ellipse at 50% 30%, rgba(203,166,247,.05) 0%, #1e1e2e 60%);
   padding-top: env(safe-area-inset-top, 0);
+  -webkit-user-select: none;
+  user-select: none;
+}
+.app input, .app textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* Block landscape mode - show fullscreen overlay */
