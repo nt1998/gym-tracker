@@ -131,7 +131,8 @@ body.landscape-override::after {
 
 .navbar {
   position: fixed;
-  bottom: env(safe-area-inset-bottom, 8px);
+  bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
   left: 0;
   right: 0;
   display: flex;
