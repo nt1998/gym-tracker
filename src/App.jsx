@@ -171,8 +171,11 @@ function App() {
   const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0)
   const [activeSetIdx, setActiveSetIdx] = useState({ type: 'work', idx: 0 }) // Track last interacted set
   const [settingsSection, setSettingsSection] = useState('sync')
+  const [ghExpanded, setGhExpanded] = useState(false)
   const [dragState, setDragState] = useState(null)
   const [touchDrag, setTouchDrag] = useState(null)
+  const [routinePicker, setRoutinePicker] = useState(false)
+  const longPressRef = useRef(null)
   const touchTimeout = useRef(null)
   const [statsFilter, setStatsFilter] = useState('current')
   const [statsTab, setStatsTab] = useState('overview')
@@ -630,9 +633,9 @@ function App() {
     if (currentExerciseIdx > 0) setCurrentExerciseIdx(currentExerciseIdx - 1)
   }
 
-  const switchRoutine = () => {
-    const currentIdx = routineTypes.indexOf(currentRoutineType)
-    const newType = routineTypes[(currentIdx + 1) % routineTypes.length]
+  const switchRoutine = (targetType) => {
+    const newType = targetType || routineTypes[(routineTypes.indexOf(currentRoutineType) + 1) % routineTypes.length]
+    if (newType === currentRoutineType) return
 
     const todayWorkout = workouts[date]
     if (todayWorkout) {
@@ -1464,12 +1467,7 @@ function App() {
 
   return (
     <div className="app">
-      <header className="header">
-        <h1>Gym Tracker</h1>
-        {tab === 'log' && <button className="routine-switch" onClick={switchRoutine}>{currentRoutine.name}</button>}
-      </header>
-
-      <main className="content">
+      <main className="content" key={tab}>
         {tab === 'log' && currentRoutine?.isRest && (
           <div className="log-page rest-log">
             <div className="rest-header">
@@ -2037,36 +2035,45 @@ function App() {
 
             {settingsSection === 'sync' && (
               <>
-                <h2>GitHub Sync</h2>
-                <p className="settings-note">Syncs with body-tracker-data repo</p>
-                {!github.connected ? (
-                  <div className="form">
-                    <div className="field"><label>Token</label><input type="password" value={github.token} onChange={(e) => setGithub({...github, token: e.target.value})} placeholder="ghp_..." /></div>
-                    <div className="field"><label>Owner</label><input value={github.owner} onChange={(e) => setGithub({...github, owner: e.target.value})} placeholder="username" /></div>
-                    <div className="field"><label>Repo</label><input value={github.repo} onChange={(e) => setGithub({...github, repo: e.target.value})} placeholder="body-tracker-data" /></div>
-                    <button className="primary-btn" onClick={connectGithub}>Connect</button>
+                <div className="settings-section">Data</div>
+
+                <div className="settings-row" onClick={() => setGhExpanded && setGhExpanded(!ghExpanded)}>
+                  <div className="sr-left">
+                    <span className="sr-icon">{'\u2693'}</span>
+                    <span className="sr-label">GitHub Sync</span>
                   </div>
-                ) : (
-                  <div className="connected-info">
-                    <p>Connected to {github.owner}/{github.repo}</p>
-                    <div className="sync-stats">
-                      {lastSyncTime > 0 && (
-                        <p className="sync-note">Last sync: {new Date(lastSyncTime).toLocaleTimeString()}</p>
-                      )}
-                      <p className="sync-note">Commits today: {commitsToday !== null ? commitsToday : '...'}</p>
-                    </div>
-                    <button className="primary-btn" style={{marginTop: '12px'}} onClick={forceSyncToGithub} disabled={!needsSync}>
-                      {needsSync ? 'Sync Now' : 'Up to date'}
-                    </button>
-                    <button className="danger-btn" style={{marginTop: '8px'}} onClick={() => {
-                      if (confirm('Disconnect from GitHub? Local data will be preserved.')) {
-                        disconnectGithub()
-                      }
-                    }}>Disconnect</button>
+                  <span className="sr-arrow">{ghExpanded ? '\u2039' : '\u203A'}</span>
+                </div>
+
+                {ghExpanded && (
+                  <div className="gh-form">
+                    {!github.connected ? (
+                      <>
+                        <div className="field"><label>Token</label><input type="password" value={github.token} onChange={(e) => setGithub({...github, token: e.target.value})} placeholder="ghp_..." /></div>
+                        <div className="field"><label>Owner</label><input value={github.owner} onChange={(e) => setGithub({...github, owner: e.target.value})} placeholder="username" /></div>
+                        <div className="field"><label>Repo</label><input value={github.repo} onChange={(e) => setGithub({...github, repo: e.target.value})} placeholder="body-tracker-data" /></div>
+                        <button className="primary-btn" onClick={connectGithub}>Connect</button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="connected-info">Connected to {github.owner}/{github.repo}</div>
+                        <div className="sync-stats">
+                          {lastSyncTime > 0 && <p className="sync-note">Last sync: {new Date(lastSyncTime).toLocaleTimeString()}</p>}
+                          <p className="sync-note">Commits today: {commitsToday !== null ? commitsToday : '...'}</p>
+                        </div>
+                        <button className="primary-btn" onClick={forceSyncToGithub} disabled={!needsSync}>
+                          {needsSync ? 'Sync Now' : 'Up to date'}
+                        </button>
+                        <button className="danger-btn" onClick={() => {
+                          if (confirm('Disconnect from GitHub? Local data will be preserved.')) disconnectGithub()
+                        }}>Disconnect</button>
+                      </>
+                    )}
+                    {syncStatus && <div className="sync-status" style={{ marginTop: 8 }}>{syncStatus}</div>}
                   </div>
                 )}
-                                <h2>App</h2>
-                <button className="primary-btn" onClick={async () => {
+
+                <button className="primary-btn" style={{ marginTop: 12 }} onClick={async () => {
                   if (needsSync && github.connected) {
                     setSyncStatus('Syncing before reload...')
                     await forceSyncToGithub()
@@ -2172,10 +2179,42 @@ function App() {
         )}
       </main>
 
+      {routinePicker && (
+        <div className="routine-picker-overlay" onClick={() => setRoutinePicker(false)}>
+          <div className="routine-picker" onClick={e => e.stopPropagation()}>
+            {Object.entries(routines).map(([key, r]) => (
+              <button
+                key={key}
+                className={`rp-option ${currentRoutineType === key ? 'active' : ''}`}
+                onClick={() => { switchRoutine(key); setRoutinePicker(false) }}
+              >
+                {r.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <nav className="navbar">
-        <button className={tab === 'log' ? 'active' : ''} onClick={() => setTab('log')}><span className="nav-icon">🏋️</span><span>Log</span></button>
-        <button className={tab === 'stats' ? 'active' : ''} onClick={() => setTab('stats')}><span className="nav-icon">📊</span><span>Stats</span></button>
-        <button className={tab === 'settings' ? 'active' : ''} onClick={() => { setTab('settings'); fetchCommitsToday() }}><span className="nav-icon">⚙️</span><span>Settings</span></button>
+        <button
+          className={tab === 'log' ? 'active' : ''}
+          onClick={() => { if (!longPressRef.current?.fired) setTab('log') }}
+          onTouchStart={() => {
+            longPressRef.current = { id: setTimeout(() => {
+              if (tab === 'log') { longPressRef.current.fired = true; setRoutinePicker(true) }
+            }, 500), fired: false }
+          }}
+          onTouchEnd={() => { if (longPressRef.current) clearTimeout(longPressRef.current.id) }}
+          onMouseDown={() => {
+            longPressRef.current = { id: setTimeout(() => {
+              if (tab === 'log') { longPressRef.current.fired = true; setRoutinePicker(true) }
+            }, 500), fired: false }
+          }}
+          onMouseUp={() => { if (longPressRef.current) clearTimeout(longPressRef.current.id) }}
+          onContextMenu={e => e.preventDefault()}
+        ><span className="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 5v14M18 5v14M3 8h4M17 8h4M3 16h4M17 16h4M6 12h12"/></svg></span></button>
+        <button className={tab === 'stats' ? 'active' : ''} onClick={() => setTab('stats')}><span className="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg></span></button>
+        <button className={tab === 'settings' ? 'active' : ''} onClick={() => { setTab('settings'); fetchCommitsToday() }}><span className="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span></button>
       </nav>
 
       {editModal && editModal.type === 'exercise' && (
