@@ -50,7 +50,7 @@ body.landscape-override::after {
 }
 .routine-picker {
   position: fixed;
-  bottom: calc(90px + env(safe-area-inset-bottom, 0));
+  bottom: calc(70px + env(safe-area-inset-bottom, 0));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -131,7 +131,7 @@ body.landscape-override::after {
 
 .navbar {
   position: fixed;
-  bottom: calc(18px + env(safe-area-inset-bottom, 0));
+  bottom: env(safe-area-inset-bottom, 8px);
   left: 0;
   right: 0;
   display: flex;
