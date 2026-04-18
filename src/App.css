@@ -251,15 +251,14 @@ body:has(textarea:focus) .navbar {
 }
 
 .commit-btn {
-  background: linear-gradient(145deg, rgba(166,227,161,.9), rgba(140,200,135,.95)) !important;
-  color: #1e1e2e !important;
+  background: linear-gradient(145deg, rgba(69,71,90,.85), rgba(49,50,68,.9)) !important;
+  color: #6c7086 !important;
   font-weight: 600;
-  font-size: 0.85rem !important;
+  font-size: 1.1rem !important;
   padding: 0 14px;
   border-radius: 50px !important;
-  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
-              -2px -2px 5px rgba(69,71,90,.18),
-              0 0 8px rgba(166,227,161,.15) !important;
+  box-shadow: 3px 3px 6px rgba(17,17,27,.4),
+              -2px -2px 5px rgba(69,71,90,.12) !important;
 }
 
 .commit-btn:active {
@@ -267,10 +266,11 @@ body:has(textarea:focus) .navbar {
 }
 
 .commit-btn.committed {
-  background: linear-gradient(145deg, rgba(49,50,68,.6), rgba(30,30,46,.75)) !important;
-  color: #a6e3a1 !important;
-  box-shadow: inset 2px 2px 5px rgba(17,17,27,.5),
-              inset -1px -1px 3px rgba(69,71,90,.1) !important;
+  background: linear-gradient(145deg, rgba(166,227,161,.9), rgba(140,200,135,.95)) !important;
+  color: #1e1e2e !important;
+  box-shadow: 3px 3px 6px rgba(17,17,27,.5),
+              -2px -2px 5px rgba(69,71,90,.18),
+              0 0 10px rgba(166,227,161,.25) !important;
 }
 
 .exercise-info-center {
@@ -1483,6 +1483,99 @@ body:has(textarea:focus) .navbar {
 .commit-rest-btn.committed {
   background: #45475a;
   color: #a6e3a1;
+}
+
+/* Rehab page-based flow */
+.rest-log-page {
+  padding: 16px;
+}
+.rest-notes-block {
+  font-size: 0.85rem;
+  color: #a6adc8;
+  line-height: 1.5;
+  padding: 12px 14px;
+  background: #181825;
+  border-left: 3px solid #a6e3a1;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+.rest-sets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rest-set-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #313244;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rest-set-row:active {
+  transform: scale(0.98);
+}
+.rest-set-box {
+  width: 44px;
+  height: 44px;
+  border: 2px solid #45475a;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #6c7086;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.rest-set-row.running .rest-set-box {
+  border-color: #89b4fa;
+  color: #89b4fa;
+  background: rgba(137, 180, 250, 0.1);
+  animation: restPulse 1s ease-in-out infinite;
+}
+.rest-set-row.checked .rest-set-box {
+  background: #a6e3a1;
+  border-color: #a6e3a1;
+  color: #1e1e2e;
+  font-size: 1.2rem;
+}
+.rest-set-row.checked {
+  opacity: 0.6;
+}
+.rest-set-label {
+  font-size: 0.9rem;
+  color: #cdd6f4;
+  font-weight: 500;
+  flex: 1;
+}
+.rest-set-row.checked .rest-set-label {
+  color: #a6e3a1;
+}
+@keyframes restPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(137, 180, 250, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(137, 180, 250, 0); }
+}
+
+/* Exercise rest timer (between-set timer) */
+.set-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #89b4fa;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 8px;
+  background: rgba(137, 180, 250, 0.12);
+  border-radius: 10px;
+  margin-left: 8px;
 }
 
 /* Routine editor improvements */

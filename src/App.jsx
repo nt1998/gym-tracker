@@ -5,6 +5,62 @@ import './App.css'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
 
+// Format seconds to m:ss
+const fmtSec = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+
+// Rehab set row — rep types instant-check, time types show countdown
+function RestSetRow({ ex, setIdx, checked, onCheck }) {
+  const [remaining, setRemaining] = useState(null)
+  const intervalRef = useRef(null)
+
+  const clearTimer = () => {
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null }
+  }
+
+  useEffect(() => () => clearTimer(), [])
+
+  // Watch for countdown end
+  useEffect(() => {
+    if (remaining === 0) {
+      clearTimer()
+      onCheck(true)
+      setRemaining(null)
+    }
+  }, [remaining, onCheck])
+
+  const isTime = ex.type === 'time'
+  const totalDuration = isTime ? (ex.duration * (ex.perSide ? 2 : 1)) : 0
+
+  const handleClick = () => {
+    if (checked) { onCheck(false); return }
+    if (!isTime) { onCheck(true); return }
+    if (remaining !== null) {
+      clearTimer()
+      setRemaining(null)
+      return
+    }
+    setRemaining(totalDuration)
+    intervalRef.current = setInterval(() => {
+      setRemaining(r => (r === null ? null : Math.max(0, r - 1)))
+    }, 1000)
+  }
+
+  const label = isTime
+    ? (ex.perSide ? `${ex.duration}s each side` : `${ex.duration}s`)
+    : `${ex.reps}${ex.perSide ? ' each side' : ''}${ex.holdSec ? ` · hold ${ex.holdSec}s` : ''}`
+
+  let boxContent = ''
+  if (checked) boxContent = '✓'
+  else if (remaining !== null) boxContent = fmtSec(remaining)
+
+  return (
+    <div className={`rest-set-row ${checked ? 'checked' : ''} ${remaining !== null ? 'running' : ''}`} onClick={handleClick}>
+      <div className="rest-set-box">{boxContent}</div>
+      <div className="rest-set-label">Set {setIdx + 1} · {label}</div>
+    </div>
+  )
+}
+
 // Convert lbs to kg
 const lbsToKg = (lbs) => Math.round(lbs * 0.453592 * 10) / 10
 
@@ -111,47 +167,22 @@ const defaultRoutines = {
     exercises: [],
     blocks: [
       {
-        name: 'Foot Core',
-        icon: '🦶',
-        duration: '~8 min',
-        exercises: [
-          { id: 1, name: 'Short Foot Exercise', sets: 3, reps: '10', notes: '5-10 sec hold · Seated → standing · DON\'T curl toes' },
-          { id: 2, name: 'Toe Yoga', sets: 3, reps: '10 each', notes: 'Big toe up / small toes down, then reverse' },
-          { id: 3, name: 'Towel Curls', sets: 3, reps: '10', notes: 'Smooth floor · Toes only, heel stays planted' },
-          { id: 4, name: 'Banded Inversion', sets: 3, reps: '15', notes: 'Posterior tibial · Turn foot inward against band · Slow' },
-        ]
-      },
-      {
-        name: 'Ankle Stability',
-        icon: '🦶',
-        duration: '~5 min',
-        exercises: [
-          { id: 5, name: 'Banded Eversion', sets: 3, reps: '15', notes: 'Peroneals · Turn foot outward against band · Slow' },
-          { id: 6, name: 'Single-Leg Balance (eyes closed)', sets: 3, reps: '30s each', notes: 'Flat ground · Engage arch · Near a wall for safety' },
-        ]
-      },
-      {
-        name: 'Hip / Knee Chain',
-        icon: '🦵',
-        duration: '~7 min',
-        exercises: [
-          { id: 7, name: 'Side-Lying Clamshells', sets: 3, reps: '15', notes: 'Band above knees · Feet stay together · Don\'t rock pelvis' },
-          { id: 8, name: 'Single-Leg Glute Bridge', sets: 3, reps: '12 each', notes: 'Drive through heel · 2 sec squeeze at top · Keep hips level' },
-        ]
-      },
-      {
-        name: 'Mobility + Stretching',
+        name: 'Rehab Routine',
         icon: '🧘',
-        duration: '~8 min',
+        duration: '~25 min',
         exercises: [
-          { id: 9, name: 'Standing Hamstring Stretch', sets: 2, reps: '30s each', notes: 'Foot on chair/step · Straight leg · Hinge at hips' },
-          { id: 10, name: 'Calf Stretch (supinated foot)', sets: 2, reps: '30s each', notes: 'Wall stretch · Straight + bent knee · Roll foot OUTWARD' },
-          { id: 11, name: 'Half-Kneeling Ankle Dorsiflexion', sets: 2, reps: '10 each', notes: 'Knee over 2nd/3rd toe · Heel stays down' },
-          { id: 12, name: 'Hip Flexor Stretch (half-kneeling)', sets: 2, reps: '30s each', notes: 'Back knee on ground · Squeeze glute · Don\'t arch lower back' },
-          { id: 13, name: '90/90 Hip Switches', sets: 2, reps: '8 each', notes: 'Slow transitions · Torso tall' },
-          { id: 14, name: 'Doorframe Chest Stretch', sets: 2, reps: '30s', notes: 'Arm at 90° on doorframe · Step through' },
-          { id: 15, name: 'Thoracic Spine Rotation (lying)', sets: 2, reps: '8 each', notes: 'Side-lying · Top arm opens up · Follow hand with eyes' },
-          { id: 16, name: 'Tricep/Lat Overhead Stretch', sets: 2, reps: '30s each', notes: 'Arm overhead, hand behind head · Pain-free range only' },
+          { id: 1,  name: 'Arch Squeeze',        alias: 'Short Foot',                       sets: 2, type: 'reps', reps: '10',       holdSec: 5, notes: 'Squeeze ball of foot toward heel, arch lifts, toes stay flat.' },
+          { id: 2,  name: 'Band Pull Inward',    alias: 'Banded Inversion',                 sets: 2, type: 'reps', reps: '15',                  notes: 'Sit, band around foot, turn foot inward against resistance.' },
+          { id: 3,  name: 'Kneeling Ankle Push', alias: 'Half-Kneeling Dorsiflexion',       sets: 2, type: 'time', duration: 45, perSide: true, notes: 'One foot flat in front, push knee over toes, heel stays down.' },
+          { id: 4,  name: 'Lying Hamstring PNF', alias: 'Supine Hamstring PNF',             sets: 1, type: 'reps', reps: '5 cycles', perSide: true, notes: 'On back, strap around foot, pull leg up. Push into strap 5s → relax → deeper.' },
+          { id: 5,  name: 'Standing Toe Touch',  alias: 'Standing Forward Fold',            sets: 2, type: 'time', duration: 45,                notes: 'Fold forward, reach for floor, let head hang.' },
+          { id: 6,  name: 'Lunge PNF',           alias: 'Half-Kneeling Hip Flexor PNF',     sets: 1, type: 'reps', reps: '5 cycles', perSide: true, notes: 'Kneel in lunge, squeeze back glute, push knee into floor 5s → relax → sink deeper.' },
+          { id: 7,  name: 'Couch Stretch',       alias: 'Rectus Femoris Stretch',           sets: 2, type: 'time', duration: 45, perSide: true, notes: 'Back foot up on couch/wall, squeeze glute, stay upright. Deep quad + hip flexor.' },
+          { id: 8,  name: 'Frog Stretch',        alias: 'Adductor Stretch',                 sets: 2, type: 'time', duration: 60,                notes: 'On all fours, knees wide, shins out, sink hips toward floor.' },
+          { id: 9,  name: 'Butterfly',           alias: 'Seated Groin Stretch',             sets: 2, type: 'time', duration: 45,                notes: 'Soles together, knees out, elbows press knees down.' },
+          { id: 10, name: 'One-Leg Bridge',      alias: 'Single-Leg Glute Bridge',          sets: 2, type: 'reps', reps: '12',       perSide: true, notes: 'On back, push hips up one leg, 2s squeeze at top.' },
+          { id: 11, name: 'Pigeon Stretch',      alias: 'Pigeon Pose / Piriformis Stretch', sets: 2, type: 'time', duration: 45, perSide: true, notes: 'Shin on floor in front, sink hips down, square hips.' },
+          { id: 12, name: 'Deep Squat Sit',      alias: 'Deep Squat Hold',                  sets: 1, type: 'time', duration: 60,                notes: 'Squat all the way down, heels down, elbows push knees apart, breathe.' },
         ]
       }
     ]
@@ -190,6 +221,15 @@ function App() {
   const [needsSync, setNeedsSync] = useState(false)
   const [commitsToday, setCommitsToday] = useState(null)
   const syncIntervalRef = useRef(null)
+  const lastCommitRef = useRef({})
+  const [, forceTick] = useState(0)
+  const markCommit = (exId) => { if (exId) { lastCommitRef.current[exId] = Date.now(); forceTick(n => n + 1) } }
+  // Tick every second so the between-set timer re-renders (only on log tab)
+  useEffect(() => {
+    if (tab !== 'log') return
+    const iv = setInterval(() => forceTick(n => (n + 1) % 1000000), 1000)
+    return () => clearInterval(iv)
+  }, [tab])
 
   // Lock screen orientation to portrait (or counter-rotate on iOS)
   useEffect(() => {
@@ -220,7 +260,11 @@ function App() {
     if (savedWorkouts) setWorkouts(JSON.parse(savedWorkouts))
     const savedRoutines = localStorage.getItem('gymtracker_routines')
     if (savedRoutines) {
-      setRoutines(JSON.parse(savedRoutines))
+      const parsed = JSON.parse(savedRoutines)
+      const firstRestEx = parsed.rest?.blocks?.[0]?.exercises?.[0]
+      if (!firstRestEx?.type) parsed.rest = defaultRoutines.rest
+      setRoutines(parsed)
+      localStorage.setItem('gymtracker_routines', JSON.stringify(parsed))
     } else {
       localStorage.setItem('gymtracker_routines', JSON.stringify(defaultRoutines))
       setRoutines(defaultRoutines)
@@ -316,6 +360,8 @@ function App() {
             if (ex.unit) ex.unit = ex.unit.toLowerCase()
           }
         }
+        const firstRestEx = data.rest?.blocks?.[0]?.exercises?.[0]
+        if (!firstRestEx?.type) data.rest = defaultRoutines.rest
         setRoutines(data)
         localStorage.setItem('gymtracker_routines', JSON.stringify(data))
       }
@@ -390,10 +436,11 @@ function App() {
   const getWorkout = () => {
     if (workouts[date]) return workouts[date]
     if (currentRoutine?.isRest) {
+      const flat = (currentRoutine.blocks || []).flatMap(b => b.exercises)
       return {
         routineType: currentRoutineType,
         exercises: [],
-        restChecks: (currentRoutine.blocks || []).flatMap(b => b.exercises).map(() => false),
+        restChecks: flat.map(ex => Array(ex.sets || 1).fill(false)),
         warmupChecks: [],
         completed: false
       }
@@ -421,7 +468,8 @@ function App() {
   const exerciseIdx = hasWarmups ? currentExerciseIdx - 1 : currentExerciseIdx
   const currentExercise = isOnWarmup ? null : workout.exercises[exerciseIdx]
   const routineTemplate = currentExercise ? (currentRoutine?.exercises.find(e => e.id === currentExercise?.id) || currentRoutine?.exercises[exerciseIdx]) : null
-  const totalItems = (hasWarmups ? 1 : 0) + workout.exercises.length
+  const restExercises = currentRoutine?.isRest ? (currentRoutine.blocks || []).flatMap(b => b.exercises) : []
+  const totalItems = currentRoutine?.isRest ? restExercises.length : ((hasWarmups ? 1 : 0) + workout.exercises.length)
 
   const saveAll = (newWorkouts, newNotes, forceSync = false) => {
     localStorage.setItem('gymtracker_workouts', JSON.stringify(newWorkouts))
@@ -512,6 +560,7 @@ function App() {
     sets[setIdx] = { ...sets[setIdx], [field]: value }
     if (field === 'weight' && value) sets[setIdx].unit = routineTemplate?.unit || 'kg'
     if (autoCommit) sets[setIdx].committed = true
+    if (autoCommit) markCommit(newWorkout.exercises[exerciseIdx]?.id)
     const newWorkouts = { ...workouts, [date]: newWorkout }
     setWorkouts(newWorkouts)
     saveAll(newWorkouts, exerciseNotes)
@@ -536,6 +585,7 @@ function App() {
       }
       if (!set.reps && prevSet?.reps) set.reps = prevSet.reps
       set.committed = true
+      markCommit(newWorkout.exercises[exerciseIdx]?.id)
     }
     setActiveSetIdx({ type, idx: setIdx })
 
@@ -585,6 +635,7 @@ function App() {
       newSets[setIdx].reps = prevSets[setIdx].reps
     }
     newSets[setIdx].committed = true
+    markCommit(newWorkout.exercises[exerciseIdx]?.id)
     const newWorkouts = { ...workouts, [date]: newWorkout }
     setWorkouts(newWorkouts)
     saveAll(newWorkouts, exerciseNotes)
@@ -609,6 +660,7 @@ function App() {
       newSets[setIdx].unit = prevSets[setIdx].unit || routineTemplate?.unit || 'kg'
     }
     newSets[setIdx].committed = true
+    markCommit(newWorkout.exercises[exerciseIdx]?.id)
     const newWorkouts = { ...workouts, [date]: newWorkout }
     setWorkouts(newWorkouts)
     saveAll(newWorkouts, exerciseNotes)
@@ -642,7 +694,7 @@ function App() {
       const hasData = todayWorkout.exercises?.some(ex =>
         ex.warmupSets?.some(s => s.weight || s.reps) ||
         ex.workSets?.some(s => s.weight || s.reps)
-      ) || todayWorkout.restChecks?.some(Boolean)
+      ) || todayWorkout.restChecks?.some(r => Array.isArray(r) ? r.some(Boolean) : r)
       if (hasData) {
         if (!confirm(`You have data logged today. Switching to ${routines[newType].name} will lose this data. Continue?`)) {
           return
@@ -654,7 +706,7 @@ function App() {
     const newWorkout = routine.isRest ? {
       routineType: newType,
       exercises: [],
-      restChecks: (routine.blocks || []).flatMap(b => b.exercises).map(() => false),
+      restChecks: (routine.blocks || []).flatMap(b => b.exercises).map(ex => Array(ex.sets || 1).fill(false)),
       warmupChecks: [],
       completed: false
     } : {
@@ -695,10 +747,16 @@ function App() {
     saveAll(newWorkouts, exerciseNotes)
   }
 
-  const toggleRestCheck = (idx) => {
+  const toggleRestSetCheck = (exIdx, setIdx, forceVal) => {
     const newWorkout = JSON.parse(JSON.stringify(workout))
-    if (!newWorkout.restChecks) newWorkout.restChecks = (currentRoutine.blocks || []).flatMap(b => b.exercises).map(() => false)
-    newWorkout.restChecks[idx] = !newWorkout.restChecks[idx]
+    const flat = (currentRoutine.blocks || []).flatMap(b => b.exercises)
+    // Migrate flat → nested if needed
+    if (!Array.isArray(newWorkout.restChecks) || (newWorkout.restChecks.length && !Array.isArray(newWorkout.restChecks[0]))) {
+      newWorkout.restChecks = flat.map(ex => Array(ex.sets || 1).fill(false))
+    }
+    if (!newWorkout.restChecks[exIdx]) newWorkout.restChecks[exIdx] = Array(flat[exIdx]?.sets || 1).fill(false)
+    const cur = newWorkout.restChecks[exIdx][setIdx] || false
+    newWorkout.restChecks[exIdx][setIdx] = forceVal === undefined ? !cur : forceVal
     const newWorkouts = { ...workouts, [date]: newWorkout }
     setWorkouts(newWorkouts)
     saveAll(newWorkouts, exerciseNotes)
@@ -1468,42 +1526,47 @@ function App() {
   return (
     <div className="app">
       <main className="content" key={tab}>
-        {tab === 'log' && currentRoutine?.isRest && (
-          <div className="log-page rest-log">
-            <div className="rest-header">
-              <h2>Rest Day — Home Rehab</h2>
-              <span className="rest-schedule">{currentRoutine.schedule} · ~28 min · Barefoot</span>
-            </div>
-            {currentRoutine.blocks?.map((block, blockIdx) => {
-              const blockStartIdx = currentRoutine.blocks.slice(0, blockIdx).reduce((sum, b) => sum + b.exercises.length, 0)
-              return (
-                <div key={block.name} className="rest-block">
-                  <div className="rest-block-header">
-                    <span>{block.icon} {block.name}</span>
-                    <span className="rest-block-duration">{block.duration}</span>
-                  </div>
-                  {block.exercises.map((ex, exIdx) => {
-                    const globalIdx = blockStartIdx + exIdx
-                    const checked = workout.restChecks?.[globalIdx] || false
-                    return (
-                      <div key={ex.id} className={`rest-exercise ${checked ? 'checked' : ''}`} onClick={() => toggleRestCheck(globalIdx)}>
-                        <div className="rest-check">{checked ? '✓' : ''}</div>
-                        <div className="rest-exercise-info">
-                          <div className="rest-exercise-name">{ex.name}</div>
-                          <div className="rest-exercise-detail">{ex.sets}×{ex.reps}</div>
-                          {ex.notes && <div className="rest-exercise-notes">{ex.notes}</div>}
-                        </div>
-                      </div>
-                    )
-                  })}
+        {tab === 'log' && currentRoutine?.isRest && restExercises.length > 0 && (() => {
+          const ex = restExercises[currentExerciseIdx] || restExercises[0]
+          const flatChecks = (Array.isArray(workout.restChecks?.[0]) || workout.restChecks?.length === 0)
+            ? workout.restChecks
+            : restExercises.map(e => Array(e.sets || 1).fill(false))
+          const exChecks = flatChecks?.[currentExerciseIdx] || Array(ex.sets || 1).fill(false)
+          return (
+            <div className="log-page rest-log-page">
+              <div className="exercise-nav">
+                <button onClick={prevExercise} disabled={currentExerciseIdx === 0}>&lt;</button>
+                <div className="exercise-info-center">
+                  <h2 className="exercise-name">{ex.name}</h2>
+                  <span className="exercise-count">
+                    {currentExerciseIdx + 1} / {restExercises.length}
+                    {ex.alias && ` · ${ex.alias}`}
+                    {workout.committed && ' ✓'}
+                  </span>
                 </div>
-              )
-            })}
-            <button className={`commit-rest-btn ${workout.committed ? 'committed' : ''}`} onClick={commitWorkout}>
-              {workout.committed ? 'Done ✓' : 'Mark Complete'}
-            </button>
-          </div>
-        )}
+                {isLastExercise ? (
+                  <button className={`commit-btn ${workout.committed ? 'committed' : ''}`} onClick={commitWorkout}>✓</button>
+                ) : (
+                  <button onClick={nextExercise}>&gt;</button>
+                )}
+              </div>
+
+              {ex.notes && <div className="rest-notes-block">{ex.notes}</div>}
+
+              <div className="rest-sets">
+                {Array.from({ length: ex.sets || 1 }).map((_, sIdx) => (
+                  <RestSetRow
+                    key={sIdx}
+                    ex={ex}
+                    setIdx={sIdx}
+                    checked={!!exChecks[sIdx]}
+                    onCheck={(val) => toggleRestSetCheck(currentExerciseIdx, sIdx, val)}
+                  />
+                ))}
+              </div>
+            </div>
+          )
+        })()}
 
         {tab === 'log' && !currentRoutine?.isRest && (isOnWarmup || currentExercise) && (
           <div className="log-page">
@@ -1518,9 +1581,7 @@ function App() {
                 </span>
               </div>
               {isLastExercise ? (
-                <button className={`commit-btn ${workout.committed ? 'committed' : ''}`} onClick={commitWorkout}>
-                  {workout.committed ? '✓' : 'Save'}
-                </button>
+                <button className={`commit-btn ${workout.committed ? 'committed' : ''}`} onClick={commitWorkout}>✓</button>
               ) : (
                 <button onClick={nextExercise}>&gt;</button>
               )}
@@ -1575,16 +1636,32 @@ function App() {
                   const isRepPR = !isWeightPR && bestWeightKg === pr.maxWeight && bestReps > pr.maxRepsAtMaxWeight
                   const lastDataKg = lastData ? toKg(lastData.weight, unit, kgPerUnit) : 0
 
+                  const anyCommitted = currentExercise.warmupSets.some(s => s.committed === true) || currentExercise.workSets.some(s => s.committed === true)
+                  const allWorkDone = currentExercise.workSets.length > 0 && currentExercise.workSets.every(s => s.committed === true)
+                  const ts = lastCommitRef.current[currentExercise.id]
+                  const showTimer = anyCommitted && !allWorkDone && ts
+                  const timer = showTimer ? (
+                    <span className="set-timer">⏱ {fmtSec(Math.floor((Date.now() - ts) / 1000))}</span>
+                  ) : null
+
                   if (pr.maxWeight > 0 || isWeightPR || isRepPR) {
                     return (
                       <div className={`pr-info ${isWeightPR ? 'new-weight-pr' : ''} ${isRepPR ? 'new-rep-pr' : ''}`}>
                         <span className="pr-label">{isWeightPR || isRepPR ? 'NEW PR!' : 'PR'}</span>
                         <span className="pr-value">{pr.maxWeight}kg × {pr.maxRepsAtMaxWeight}</span>
                         {lastData && <span className="last-value">Last: {lastData.weight}{unit} {unit !== 'kg' ? `(${lastDataKg}kg)` : ''} × {lastData.reps}</span>}
+                        {timer}
                       </div>
                     )
                   } else if (lastData) {
-                    return <div className="last-workout">Last: {lastData.weight}{unit} {unit !== 'kg' ? `(${lastDataKg}kg)` : ''} × {lastData.reps}</div>
+                    return (
+                      <div className="last-workout">
+                        Last: {lastData.weight}{unit} {unit !== 'kg' ? `(${lastDataKg}kg)` : ''} × {lastData.reps}
+                        {timer}
+                      </div>
+                    )
+                  } else if (timer) {
+                    return <div className="last-workout">{timer}</div>
                   }
                   return null
                 })()}
