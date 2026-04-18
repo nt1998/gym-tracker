@@ -1467,10 +1467,6 @@ function App() {
 
   return (
     <div className="app">
-      <div style={{position:'fixed',top:0,left:0,right:0,zIndex:9999,background:'red',color:'#fff',padding:4,fontSize:10,pointerEvents:'none',fontFamily:'monospace'}}>
-        v0.3.5 sa:{String(window.navigator.standalone)} iH:{window.innerHeight} cH:{document.documentElement.clientHeight} sH:{window.screen.height}
-        {' '}sab:{getComputedStyle(document.documentElement).getPropertyValue('--sab') || 'n/a'}
-      </div>
       <main className="content" key={tab}>
         {tab === 'log' && currentRoutine?.isRest && (
           <div className="log-page rest-log">
