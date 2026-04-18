@@ -5,6 +5,36 @@ import './App.css'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
 
+// Week-boundary markers — subtle vertical lines at Sun→Mon transitions
+const weekMarkersPlugin = {
+  id: 'weekMarkers',
+  beforeDatasetsDraw(chart) {
+    const dates = chart.options.plugins?.weekMarkers?.dates
+    if (!dates || dates.length < 2) return
+    const { ctx, chartArea, scales } = chart
+    const parse = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
+    ctx.save()
+    ctx.strokeStyle = 'rgba(137, 180, 250, 0.13)'
+    ctx.lineWidth = 1
+    ctx.setLineDash([])
+    for (let i = 1; i < dates.length; i++) {
+      const cur = parse(dates[i])
+      if (cur.getDay() !== 1) continue
+      const prev = parse(dates[i - 1])
+      if (prev.getDay() === 1) continue
+      const xCur = scales.x.getPixelForValue(i)
+      const xPrev = scales.x.getPixelForValue(i - 1)
+      const x = (xCur + xPrev) / 2
+      ctx.beginPath()
+      ctx.moveTo(x, chartArea.top)
+      ctx.lineTo(x, chartArea.bottom)
+      ctx.stroke()
+    }
+    ctx.restore()
+  }
+}
+ChartJS.register(weekMarkersPlugin)
+
 // Format seconds to m:ss
 const fmtSec = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
@@ -2722,7 +2752,8 @@ function App() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                  legend: { position: 'top', labels: { color: '#cdd6f4', boxWidth: 12, font: { size: 10 } } }
+                  legend: { position: 'top', labels: { color: '#cdd6f4', boxWidth: 12, font: { size: 10 } } },
+                  weekMarkers: { dates: progressData.map(d => d.date) }
                 },
                 scales: {
                   x: { ticks: { color: '#6c7086', font: { size: 9 } }, grid: { color: '#313244' } },
