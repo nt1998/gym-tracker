@@ -1,8 +1,8 @@
 {
   "name": "Gym Tracker",
   "short_name": "Gym",
-  "start_url": "/gym-tracker/",
-  "scope": "/gym-tracker/",
+  "start_url": "/gym-tracker/v2/",
+  "scope": "/gym-tracker/v2/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#1e1e2e",
