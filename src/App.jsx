@@ -1467,9 +1467,6 @@ function App() {
 
   return (
     <div className="app">
-      <div style={{position:'fixed',top:0,left:0,zIndex:9999,background:'red',color:'#fff',padding:4,fontSize:12,pointerEvents:'none'}}>
-        standalone: {String(window.navigator.standalone)}
-      </div>
       <main className="content" key={tab}>
         {tab === 'log' && currentRoutine?.isRest && (
           <div className="log-page rest-log">
