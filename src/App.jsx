@@ -1467,7 +1467,6 @@ function App() {
 
   return (
     <div className="app">
-      <div style={{position:'fixed',top:0,right:4,zIndex:9999,color:'#6c7086',fontSize:9,pointerEvents:'none',fontFamily:'monospace'}}>v0.4.0</div>
       <main className="content" key={tab}>
         {tab === 'log' && currentRoutine?.isRest && (
           <div className="log-page rest-log">
