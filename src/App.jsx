@@ -2197,16 +2197,21 @@ function App() {
                           <div key={blockIdx}>
                             <div className="subsection-label">{block.icon} {block.name} <span className="subsection-duration">{block.duration}</span></div>
                             <div className="exercise-list">
-                              {block.exercises.map((ex) => (
-                                <div key={ex.id} className="exercise-item rest-type" onClick={() => setEditModal({ type: 'restExercise', routineKey: key, blockIdx, exercise: { ...ex }, isNew: false })}>
-                                  <div className="exercise-info">
-                                    <span className="exercise-title">{ex.name}</span>
-                                    <span className="exercise-sets">{ex.sets}×{ex.reps}{ex.notes ? ` · ${ex.notes}` : ''}</span>
+                              {block.exercises.map((ex) => {
+                                const summary = ex.type === 'time'
+                                  ? `${ex.sets || 1} × ${ex.duration || 0}s${ex.perSide ? ' each side' : ''}`
+                                  : `${ex.sets || 1} × ${ex.reps || '?'}${ex.perSide ? ' each side' : ''}${ex.holdSec ? ` · hold ${ex.holdSec}s` : ''}`
+                                return (
+                                  <div key={ex.id} className="exercise-item rest-type" onClick={() => setEditModal({ type: 'restExercise', routineKey: key, blockIdx, exercise: { ...ex }, isNew: false })}>
+                                    <div className="exercise-info">
+                                      <span className="exercise-title">{ex.name}{ex.alias ? ` (${ex.alias})` : ''}</span>
+                                      <span className="exercise-sets">{summary}{ex.notes ? ` · ${ex.notes}` : ''}</span>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                )
+                              })}
                             </div>
-                            <button className="add-btn add-btn-small" onClick={() => setEditModal({ type: 'restExercise', routineKey: key, blockIdx, exercise: { id: Math.max(0, ...routine.blocks.flatMap(b => b.exercises.map(e => e.id))) + 1, name: '', sets: 3, reps: '', notes: '' }, isNew: true })}>+ Add Exercise</button>
+                            <button className="add-btn add-btn-small" onClick={() => setEditModal({ type: 'restExercise', routineKey: key, blockIdx, exercise: { id: Math.max(0, ...routine.blocks.flatMap(b => b.exercises.map(e => e.id))) + 1, name: '', alias: '', sets: 2, type: 'reps', reps: '', duration: 30, holdSec: 0, perSide: false, notes: '' }, isNew: true })}>+ Add Exercise</button>
                           </div>
                         ))}
                       </>
@@ -2430,63 +2435,105 @@ function App() {
         </div>
       )}
 
-      {editModal && editModal.type === 'restExercise' && (
-        <div className="modal-overlay" onClick={() => setEditModal(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{editModal.isNew ? 'Add Exercise' : 'Edit Exercise'}</h3>
-              {!editModal.isNew && (
-                <button className="trash-btn" onClick={() => {
-                  if (confirm(`Delete ${editModal.exercise.name}?`)) {
-                    const newRoutines = JSON.parse(JSON.stringify(routines))
-                    newRoutines[editModal.routineKey].blocks[editModal.blockIdx].exercises =
-                      newRoutines[editModal.routineKey].blocks[editModal.blockIdx].exercises.filter(e => e.id !== editModal.exercise.id)
-                    setRoutines(newRoutines)
-                    saveRoutines(newRoutines)
-                    setEditModal(null)
+      {editModal && editModal.type === 'restExercise' && (() => {
+        const ex = editModal.exercise
+        const patch = (p) => setEditModal({ ...editModal, exercise: { ...ex, ...p } })
+        const exType = ex.type || 'reps'
+        return (
+          <div className="modal-overlay" onClick={() => setEditModal(null)}>
+            <div className="modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>{editModal.isNew ? 'Add Exercise' : 'Edit Exercise'}</h3>
+                {!editModal.isNew && (
+                  <button className="trash-btn" onClick={() => {
+                    if (confirm(`Delete ${ex.name}?`)) {
+                      const newRoutines = JSON.parse(JSON.stringify(routines))
+                      newRoutines[editModal.routineKey].blocks[editModal.blockIdx].exercises =
+                        newRoutines[editModal.routineKey].blocks[editModal.blockIdx].exercises.filter(e => e.id !== ex.id)
+                      setRoutines(newRoutines)
+                      saveRoutines(newRoutines)
+                      setEditModal(null)
+                    }
+                  }}>🗑</button>
+                )}
+              </div>
+              <div className="form">
+                <div className="field">
+                  <label>Name</label>
+                  <input value={ex.name ?? ''} onChange={(e) => patch({ name: e.target.value })} placeholder="e.g. Arch Squeeze" />
+                </div>
+                <div className="field">
+                  <label>Alias (clinical name)</label>
+                  <input value={ex.alias ?? ''} onChange={(e) => patch({ alias: e.target.value })} placeholder="e.g. Short Foot" />
+                </div>
+                <div className="field-row">
+                  <div className="field">
+                    <label>Type</label>
+                    <select value={exType} onChange={(e) => patch({ type: e.target.value })}>
+                      <option value="reps">Reps</option>
+                      <option value="time">Time</option>
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Sets</label>
+                    <input type="number" min="1" max="2" value={ex.sets ?? 2} onChange={(e) => patch({ sets: Math.min(2, Math.max(1, parseInt(e.target.value) || 1)) })} />
+                  </div>
+                </div>
+                {exType === 'time' ? (
+                  <div className="field">
+                    <label>Duration (seconds)</label>
+                    <input type="number" min="1" value={ex.duration ?? 30} onChange={(e) => patch({ duration: parseInt(e.target.value) || 0 })} />
+                  </div>
+                ) : (
+                  <div className="field-row">
+                    <div className="field">
+                      <label>Reps</label>
+                      <input value={ex.reps ?? ''} onChange={(e) => patch({ reps: e.target.value })} placeholder="e.g. 10 or 5 cycles" />
+                    </div>
+                    <div className="field">
+                      <label>Hold (s, optional)</label>
+                      <input type="number" min="0" value={ex.holdSec ?? 0} onChange={(e) => patch({ holdSec: parseInt(e.target.value) || 0 })} />
+                    </div>
+                  </div>
+                )}
+                <div className="field">
+                  <label className="checkbox-label">
+                    <input type="checkbox" checked={!!ex.perSide} onChange={(e) => patch({ perSide: e.target.checked })} />
+                    <span>Each side</span>
+                  </label>
+                </div>
+                <div className="field">
+                  <label>Notes</label>
+                  <input value={ex.notes ?? ''} onChange={(e) => patch({ notes: e.target.value })} placeholder="Cues or instructions" />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button className="cancel-btn" onClick={() => setEditModal(null)}>Cancel</button>
+                <button className="primary-btn" onClick={() => {
+                  const newRoutines = JSON.parse(JSON.stringify(routines))
+                  const block = newRoutines[editModal.routineKey].blocks[editModal.blockIdx]
+                  // Strip fields not relevant to the chosen type, so stale fields don't leak in
+                  const cleaned = { ...ex, type: exType, sets: Math.min(2, Math.max(1, ex.sets || 1)) }
+                  if (exType === 'time') { delete cleaned.reps; delete cleaned.holdSec }
+                  else { delete cleaned.duration }
+                  if (!cleaned.perSide) delete cleaned.perSide
+                  if (!cleaned.holdSec) delete cleaned.holdSec
+                  if (!cleaned.alias) delete cleaned.alias
+                  if (editModal.isNew) {
+                    block.exercises.push(cleaned)
+                  } else {
+                    const idx = block.exercises.findIndex(e => e.id === cleaned.id)
+                    if (idx !== -1) block.exercises[idx] = cleaned
                   }
-                }}>🗑</button>
-              )}
-            </div>
-            <div className="form">
-              <div className="field">
-                <label>Name</label>
-                <input value={editModal.exercise.name} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, name: e.target.value}})} placeholder="Exercise name" />
+                  setRoutines(newRoutines)
+                  saveRoutines(newRoutines)
+                  setEditModal(null)
+                }}>Save</button>
               </div>
-              <div className="field-row">
-                <div className="field">
-                  <label>Sets</label>
-                  <input type="number" value={editModal.exercise.sets} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, sets: parseInt(e.target.value) || 1}})} />
-                </div>
-                <div className="field">
-                  <label>Reps / Duration</label>
-                  <input value={editModal.exercise.reps} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, reps: e.target.value}})} placeholder="e.g. 10 each, 30s" />
-                </div>
-              </div>
-              <div className="field">
-                <label>Notes</label>
-                <input value={editModal.exercise.notes ?? ''} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, notes: e.target.value}})} placeholder="Cues or instructions" />
-              </div>
-            </div>
-            <div className="modal-actions">
-              <button className="cancel-btn" onClick={() => setEditModal(null)}>Cancel</button>
-              <button className="primary-btn" onClick={() => {
-                const newRoutines = JSON.parse(JSON.stringify(routines))
-                const block = newRoutines[editModal.routineKey].blocks[editModal.blockIdx]
-                if (editModal.isNew) {
-                  block.exercises.push(editModal.exercise)
-                } else {
-                  const idx = block.exercises.findIndex(e => e.id === editModal.exercise.id)
-                  if (idx !== -1) block.exercises[idx] = editModal.exercise
-                }
-                setRoutines(newRoutines)
-                saveRoutines(newRoutines)
-                setEditModal(null)
-              }}>Save</button>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {selectedWorkoutDay && (
         <div className="modal-overlay" onClick={() => setSelectedWorkoutDay(null)}>

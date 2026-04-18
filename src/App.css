@@ -1563,6 +1563,21 @@ body:has(textarea:focus) .navbar {
   50% { box-shadow: 0 0 0 6px rgba(137, 180, 250, 0); }
 }
 
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.9rem;
+}
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #a6e3a1;
+}
+
 /* Exercise rest timer (between-set timer) */
 .set-timer {
   display: inline-flex;
