@@ -8,6 +8,109 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarEleme
 // Format seconds to m:ss
 const fmtSec = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
+// Scrubbable line chart — tap/slide highlights nearest point
+function ScrubbableLine({ data, options, renderHead, className }) {
+  const chartRef = useRef(null)
+  const wrapRef = useRef(null)
+  const selRef = useRef(null)
+  const [sel, setSel] = useState(null)
+
+  const clearSel = () => {
+    if (selRef.current == null) return
+    selRef.current = null
+    setSel(null)
+    chartRef.current?.update('none')
+  }
+
+  useEffect(() => {
+    const onDown = (e) => {
+      if (selRef.current == null) return
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) clearSel()
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [])
+
+  const pickIdx = (clientX) => {
+    const chart = chartRef.current
+    if (!chart) return null
+    const rect = chart.canvas.getBoundingClientRect()
+    const x = clientX - rect.left
+    const scale = chart.scales.x
+    if (!scale) return null
+    const n = chart.data.labels.length
+    let best = 0, bestDist = Infinity
+    for (let i = 0; i < n; i++) {
+      const px = scale.getPixelForValue(i)
+      const d = Math.abs(px - x)
+      if (d < bestDist) { bestDist = d; best = i }
+    }
+    return best
+  }
+
+  const updateSel = (idx) => {
+    if (idx == null || idx === selRef.current) return
+    selRef.current = idx
+    setSel(idx)
+    chartRef.current?.update('none')
+  }
+
+  const onTouchStart = (e) => { const t = e.touches?.[0]; if (t) updateSel(pickIdx(t.clientX)) }
+  const onTouchMove = (e) => { const t = e.touches?.[0]; if (!t) return; e.preventDefault(); updateSel(pickIdx(t.clientX)) }
+
+  const scrubPlugin = useMemo(() => ({
+    id: 'scrub',
+    afterDatasetsDraw(chart) {
+      const idx = selRef.current
+      if (idx == null) return
+      const { ctx, chartArea, scales } = chart
+      const x = scales.x.getPixelForValue(idx)
+      ctx.save()
+      ctx.strokeStyle = 'rgba(137, 180, 250, 0.55)'
+      ctx.lineWidth = 1
+      ctx.setLineDash([3, 3])
+      ctx.beginPath()
+      ctx.moveTo(x, chartArea.top)
+      ctx.lineTo(x, chartArea.bottom)
+      ctx.stroke()
+      ctx.setLineDash([])
+      chart.data.datasets.forEach((ds, i) => {
+        const meta = chart.getDatasetMeta(i)
+        const pt = meta.data[idx]
+        if (!pt) return
+        ctx.beginPath()
+        ctx.arc(pt.x, pt.y, 4.5, 0, Math.PI * 2)
+        ctx.fillStyle = ds.borderColor
+        ctx.fill()
+        ctx.strokeStyle = '#1e1e2e'
+        ctx.lineWidth = 2
+        ctx.stroke()
+      })
+      ctx.restore()
+    }
+  }), [])
+
+  return (
+    <>
+      {renderHead && renderHead(sel)}
+      <div
+        ref={wrapRef}
+        className={className}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        style={{ touchAction: 'pan-y' }}
+      >
+        <Line
+          ref={chartRef}
+          data={data}
+          options={options}
+          plugins={[scrubPlugin]}
+        />
+      </div>
+    </>
+  )
+}
+
 // Rehab set row — rep types instant-check, time types show countdown
 function RestSetRow({ ex, setIdx, checked, onCheck }) {
   const [remaining, setRemaining] = useState(null)
@@ -2635,9 +2738,23 @@ function App() {
                     <div className="stat-row"><span>Total Reps</span><span>{stats.totalReps}</span></div>
                   </div>
                   {progressData.length >= 1 && (
-                    <div className="exercise-chart">
-                      <Line data={chartData} options={chartOptions} />
-                    </div>
+                    <ScrubbableLine
+                      className="exercise-chart"
+                      data={chartData}
+                      options={chartOptions}
+                      renderHead={(idx) => {
+                        const i = idx ?? progressData.length - 1
+                        const d = progressData[i]
+                        if (!d) return null
+                        return (
+                          <div className="exercise-chart-head">
+                            <span>{d.date}</span>
+                            <span style={{ color: '#89b4fa' }}>{d.weight}kg</span>
+                            <span style={{ color: '#f9e2af' }}>1RM {d.oneRM}kg</span>
+                          </div>
+                        )
+                      }}
+                    />
                   )}
                 </>
               )

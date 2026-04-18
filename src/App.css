@@ -1563,6 +1563,16 @@ body:has(textarea:focus) .navbar {
   50% { box-shadow: 0 0 0 6px rgba(137, 180, 250, 0); }
 }
 
+.exercise-chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.8rem;
+  color: #a6adc8;
+  padding: 0 4px 6px;
+  font-variant-numeric: tabular-nums;
+}
+
 .checkbox-label {
   display: flex !important;
   align-items: center;
