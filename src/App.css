@@ -1,3 +1,7 @@
+:root {
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sat: env(safe-area-inset-top, 0px);
+}
 .app {
   height: 100%;
   display: flex;
