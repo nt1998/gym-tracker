@@ -5,18 +5,16 @@ import './App.css'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend)
 
-// Week-boundary markers — subtle vertical lines at Sun→Mon transitions
+// Week-boundary markers — small tick marks at x-axis for Sun→Mon transitions
 const weekMarkersPlugin = {
   id: 'weekMarkers',
-  beforeDatasetsDraw(chart) {
+  afterDatasetsDraw(chart) {
     const dates = chart.options.plugins?.weekMarkers?.dates
     if (!dates || dates.length < 2) return
     const { ctx, chartArea, scales } = chart
     const parse = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
     ctx.save()
-    ctx.strokeStyle = 'rgba(137, 180, 250, 0.13)'
-    ctx.lineWidth = 1
-    ctx.setLineDash([])
+    ctx.fillStyle = 'rgba(137, 180, 250, 0.55)'
     for (let i = 1; i < dates.length; i++) {
       const cur = parse(dates[i])
       if (cur.getDay() !== 1) continue
@@ -25,10 +23,7 @@ const weekMarkersPlugin = {
       const xCur = scales.x.getPixelForValue(i)
       const xPrev = scales.x.getPixelForValue(i - 1)
       const x = (xCur + xPrev) / 2
-      ctx.beginPath()
-      ctx.moveTo(x, chartArea.top)
-      ctx.lineTo(x, chartArea.bottom)
-      ctx.stroke()
+      ctx.fillRect(Math.round(x) - 1, chartArea.bottom - 2, 2, 5)
     }
     ctx.restore()
   }
