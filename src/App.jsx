@@ -2292,6 +2292,16 @@ function App() {
                   }
                   window.location.reload()
                 }}>Reload App</button>
+
+                <button className="primary-btn" style={{ marginTop: 8, background: '#f38ba8', color: '#1e1e2e' }} onClick={() => {
+                  if (!confirm('Discard local workouts/notes and pull fresh from GitHub? This cannot be undone.')) return
+                  localStorage.removeItem('gymtracker_workouts')
+                  localStorage.removeItem('gymtracker_notes')
+                  localStorage.removeItem('gymtracker_lastsync')
+                  setNeedsSync(false)
+                  window.location.reload()
+                }}>Force Pull From GitHub</button>
+
                 {needsSync && <p className="sync-note" style={{marginTop: '8px'}}>Changes pending sync</p>}
                 <p className="version-text">v0.3.2</p>
               </>
