@@ -317,9 +317,16 @@ const defaultRoutines = {
   }
 }
 
+const localDateKey = (d) => {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 function App() {
   const [tab, setTab] = useState('log')
-  const [date] = useState(new Date().toISOString().split('T')[0])
+  const [date] = useState(localDateKey(new Date()))
   const [workouts, setWorkouts] = useState({})
   const [routines, setRoutines] = useState(defaultRoutines)
   const [exerciseNotes, setExerciseNotes] = useState({})
