@@ -250,6 +250,22 @@ const formatPlates = (plates) => {
     .join('+')
 }
 
+const emptyRoutines = {
+  push: {
+    name: 'Push', schedule: '', warmups: [],
+    exercises: [
+      { id: 1, name: 'Bench Press', warmupSets: 2, workSets: 3, reps: '8-12', unit: 'kg', equipmentType: 'plates', startWeight: 0, increment: 5, barWeight: 20 },
+    ],
+  },
+  pull: {
+    name: 'Pull', schedule: '', warmups: [],
+    exercises: [
+      { id: 1, name: 'Lat Row', warmupSets: 2, workSets: 3, reps: '8-12', unit: 'kg', equipmentType: 'machine', startWeight: 10, increment: 5 },
+    ],
+  },
+  rest: { name: 'Rest Day', schedule: '', isRest: true, warmups: [], exercises: [], blocks: [] },
+}
+
 const localDateKey = (d) => {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -261,7 +277,7 @@ function App() {
   const [tab, setTab] = useState('log')
   const [date] = useState(localDateKey(new Date()))
   const [workouts, setWorkouts] = useState({})
-  const [routines, setRoutines] = useState({})
+  const [routines, setRoutines] = useState(emptyRoutines)
   const [exerciseNotes, setExerciseNotes] = useState({})
   const [github, setGithub] = useState({ token: '', repo: '', owner: '', connected: false })
   const [editModal, setEditModal] = useState(null)
@@ -330,8 +346,8 @@ function App() {
     if (savedRoutines) {
       setRoutines(JSON.parse(savedRoutines))
     } else {
-      localStorage.setItem('gymtracker_routines', JSON.stringify({}))
-      setRoutines({})
+      localStorage.setItem('gymtracker_routines', JSON.stringify(emptyRoutines))
+      setRoutines(emptyRoutines)
     }
     const savedNotes = localStorage.getItem('gymtracker_notes')
     if (savedNotes) setExerciseNotes(JSON.parse(savedNotes))
@@ -1629,6 +1645,21 @@ function App() {
             </div>
           )
         })()}
+
+        {tab === 'log' && currentRoutine?.isRest && restExercises.length === 0 && (
+          <div style={{padding: '60px 20px', textAlign: 'center', color: '#888'}}>
+            <h2 style={{marginBottom: '16px'}}>{currentRoutine.name}</h2>
+            <div style={{fontSize: '64px', marginBottom: '12px'}}>🛌</div>
+            <p>Nothing to do today.</p>
+          </div>
+        )}
+
+        {tab === 'log' && !currentRoutine?.isRest && !(isOnWarmup || currentExercise) && (
+          <div style={{padding: '40px 20px', textAlign: 'center', color: '#888'}}>
+            <p style={{marginBottom: '16px'}}>No exercises configured for {currentRoutine?.name || 'this routine'}.</p>
+            <button onClick={() => { setTab('settings'); setSettingsSection('routines') }}>Set up routines</button>
+          </div>
+        )}
 
         {tab === 'log' && !currentRoutine?.isRest && (isOnWarmup || currentExercise) && (
           <div className="log-page">
