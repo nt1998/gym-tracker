@@ -250,73 +250,6 @@ const formatPlates = (plates) => {
     .join('+')
 }
 
-const defaultRoutines = {
-  push: {
-    name: 'Push',
-    schedule: 'Mon & Thu',
-    warmups: [
-      { id: 'w1', name: 'Shoulder Circles', reps: '10', checks: ['Forward Left', 'Forward Right', 'Backward Left', 'Backward Right'] },
-      { id: 'w2', name: 'Wrist Circles', reps: '10', checks: ['Clockwise Left', 'Clockwise Right', 'Counterclockwise Left', 'Counterclockwise Right'] },
-      { id: 'w3', name: 'Ankle Circles', reps: '10', notes: 'Prep for calf raises', checks: ['Clockwise Left', 'Clockwise Right', 'Counterclockwise Left', 'Counterclockwise Right'] },
-      { id: 'w4', name: 'Isometric Elbow Extension', reps: '20-30s', notes: 'Mid-range (~100°) · 50-60% effort · Skip if painful', checks: ['Set 1', 'Set 2', 'Set 3'] },
-    ],
-    exercises: [
-      { id: 1, name: 'Pushdown', warmupSets: 2, workSets: 2, reps: '15-20', unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15, templateNotes: '3s ecc / 3s con · Stop 15° before lockout · Pain ≤3/10' },
-      { id: 2, name: 'Lateral Raise Machine', warmupSets: 2, workSets: 2, reps: '10-15', unit: 'lbs', equipmentType: 'machine', startWeight: 5, increment: 5, templateNotes: 'Small muscle, long lever — heavier isn\'t better here' },
-      { id: 3, name: 'Incline Chest Press', warmupSets: 3, workSets: 2, reps: '8-12', unit: 'lbs', equipmentType: 'plates', startWeight: 0, increment: 5, barWeight: 0, templateNotes: 'Stop 2-3cm before lockout' },
-      { id: 4, name: 'Butterfly', warmupSets: 1, workSets: 2, reps: '10-15', unit: 'kg', equipmentType: 'machine', startWeight: 7, increment: 7, templateNotes: 'Heavy flyes stress shoulder joint at stretch — higher reps safer' },
-      { id: 5, name: 'Seated Leg Extensions', warmupSets: 3, workSets: 1, reps: '12-15', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5, templateNotes: 'No knee lockout · First warmup = joint prep, no weight' },
-      { id: 6, name: 'Standing Calf Raises', warmupSets: 1, workSets: 1, reps: '15-20', unit: 'kg', equipmentType: 'machine', startWeight: 35, increment: 10, templateNotes: 'Slow 3s ecc · Heel STRAIGHT · Limit depth if snapping' },
-    ]
-  },
-  pull: {
-    name: 'Pull',
-    schedule: 'Tue & Fri',
-    warmups: [
-      { id: 'w1', name: 'Shoulder Circles', reps: '10', checks: ['Forward Left', 'Forward Right', 'Backward Left', 'Backward Right'] },
-      { id: 'w2', name: 'Wrist Circles', reps: '10', notes: 'Prep for curls + rows', checks: ['Clockwise Left', 'Clockwise Right', 'Counterclockwise Left', 'Counterclockwise Right'] },
-    ],
-    exercises: [
-      { id: 1, name: 'Preacher Curl', warmupSets: 1, workSets: 2, reps: '4-8', unit: 'kg', equipmentType: 'machine', startWeight: 5, increment: 5 },
-      { id: 2, name: 'RDL', warmupSets: 3, workSets: 1, reps: '4-8', unit: 'lbs', equipmentType: 'plates', startWeight: 25, increment: 5, barWeight: 25 },
-      { id: 3, name: 'Lat Pulldown', warmupSets: 3, workSets: 2, reps: '4-8', unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15 },
-      { id: 4, name: 'Chest-Supported Row', warmupSets: 1, workSets: 1, reps: '4-8', unit: 'lbs', equipmentType: 'machine', startWeight: 30, increment: 10 },
-      { id: 5, name: 'Reverse Butterfly', warmupSets: 1, workSets: 1, reps: '4-8', unit: 'kg', equipmentType: 'machine', startWeight: 7, increment: 7 },
-      { id: 6, name: 'Crunch Cable', warmupSets: 1, workSets: 2, reps: '4-8', unit: 'lbs', equipmentType: 'cable', startWeight: 10, increment: 15 },
-      { id: 7, name: 'Hip Adduction', warmupSets: 1, workSets: 1, reps: '12-15', unit: 'lbs', equipmentType: 'machine', startWeight: 20, increment: 10, templateNotes: 'Superset with abduction' },
-      { id: 8, name: 'Hip Abduction', warmupSets: 1, workSets: 1, reps: '12-15', unit: 'lbs', equipmentType: 'machine', startWeight: 20, increment: 10, templateNotes: 'Glute medius — patellar tracking · Superset with adduction' },
-    ]
-  },
-  rest: {
-    name: 'Rest Day',
-    schedule: 'Wed, Sat, Sun',
-    isRest: true,
-    warmups: [],
-    exercises: [],
-    blocks: [
-      {
-        name: 'Rehab Routine',
-        icon: '🧘',
-        duration: '~25 min',
-        exercises: [
-          { id: 1,  name: 'Arch Squeeze',        alias: 'Short Foot',                       sets: 2, type: 'reps', reps: '10',       holdSec: 5, notes: 'Squeeze ball of foot toward heel, arch lifts, toes stay flat.' },
-          { id: 2,  name: 'Band Pull Inward',    alias: 'Banded Inversion',                 sets: 2, type: 'reps', reps: '15',                  notes: 'Sit, band around foot, turn foot inward against resistance.' },
-          { id: 3,  name: 'Kneeling Ankle Push', alias: 'Half-Kneeling Dorsiflexion',       sets: 2, type: 'time', duration: 45, perSide: true, notes: 'One foot flat in front, push knee over toes, heel stays down.' },
-          { id: 4,  name: 'Lying Hamstring PNF', alias: 'Supine Hamstring PNF',             sets: 1, type: 'reps', reps: '5 cycles', perSide: true, notes: 'On back, strap around foot, pull leg up. Push into strap 5s → relax → deeper.' },
-          { id: 5,  name: 'Standing Toe Touch',  alias: 'Standing Forward Fold',            sets: 2, type: 'time', duration: 45,                notes: 'Fold forward, reach for floor, let head hang.' },
-          { id: 6,  name: 'Lunge PNF',           alias: 'Half-Kneeling Hip Flexor PNF',     sets: 1, type: 'reps', reps: '5 cycles', perSide: true, notes: 'Kneel in lunge, squeeze back glute, push knee into floor 5s → relax → sink deeper.' },
-          { id: 7,  name: 'Couch Stretch',       alias: 'Rectus Femoris Stretch',           sets: 2, type: 'time', duration: 45, perSide: true, notes: 'Back foot up on couch/wall, squeeze glute, stay upright. Deep quad + hip flexor.' },
-          { id: 8,  name: 'Frog Stretch',        alias: 'Adductor Stretch',                 sets: 2, type: 'time', duration: 60,                notes: 'On all fours, knees wide, shins out, sink hips toward floor.' },
-          { id: 9,  name: 'Butterfly',           alias: 'Seated Groin Stretch',             sets: 2, type: 'time', duration: 45,                notes: 'Soles together, knees out, elbows press knees down.' },
-          { id: 10, name: 'One-Leg Bridge',      alias: 'Single-Leg Glute Bridge',          sets: 2, type: 'reps', reps: '12',       perSide: true, notes: 'On back, push hips up one leg, 2s squeeze at top.' },
-          { id: 11, name: 'Pigeon Stretch',      alias: 'Pigeon Pose / Piriformis Stretch', sets: 2, type: 'time', duration: 45, perSide: true, notes: 'Shin on floor in front, sink hips down, square hips.' },
-          { id: 12, name: 'Deep Squat Sit',      alias: 'Deep Squat Hold',                  sets: 1, type: 'time', duration: 60,                notes: 'Squat all the way down, heels down, elbows push knees apart, breathe.' },
-        ]
-      }
-    ]
-  }
-}
-
 const localDateKey = (d) => {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -328,7 +261,7 @@ function App() {
   const [tab, setTab] = useState('log')
   const [date] = useState(localDateKey(new Date()))
   const [workouts, setWorkouts] = useState({})
-  const [routines, setRoutines] = useState(defaultRoutines)
+  const [routines, setRoutines] = useState({})
   const [exerciseNotes, setExerciseNotes] = useState({})
   const [github, setGithub] = useState({ token: '', repo: '', owner: '', connected: false })
   const [editModal, setEditModal] = useState(null)
@@ -395,14 +328,10 @@ function App() {
     if (savedWorkouts) setWorkouts(JSON.parse(savedWorkouts))
     const savedRoutines = localStorage.getItem('gymtracker_routines')
     if (savedRoutines) {
-      const parsed = JSON.parse(savedRoutines)
-      const firstRestEx = parsed.rest?.blocks?.[0]?.exercises?.[0]
-      if (!firstRestEx?.type) parsed.rest = defaultRoutines.rest
-      setRoutines(parsed)
-      localStorage.setItem('gymtracker_routines', JSON.stringify(parsed))
+      setRoutines(JSON.parse(savedRoutines))
     } else {
-      localStorage.setItem('gymtracker_routines', JSON.stringify(defaultRoutines))
-      setRoutines(defaultRoutines)
+      localStorage.setItem('gymtracker_routines', JSON.stringify({}))
+      setRoutines({})
     }
     const savedNotes = localStorage.getItem('gymtracker_notes')
     if (savedNotes) setExerciseNotes(JSON.parse(savedNotes))
@@ -495,8 +424,6 @@ function App() {
             if (ex.unit) ex.unit = ex.unit.toLowerCase()
           }
         }
-        const firstRestEx = data.rest?.blocks?.[0]?.exercises?.[0]
-        if (!firstRestEx?.type) data.rest = defaultRoutines.rest
         setRoutines(data)
         localStorage.setItem('gymtracker_routines', JSON.stringify(data))
       }
@@ -2384,12 +2311,6 @@ function App() {
                     )}
                   </div>
                 ))}
-                <button className="danger-btn" style={{marginTop: '20px'}} onClick={() => {
-                  if (confirm('Reset all routines to default? This will restore original exercises and order.')) {
-                    setRoutines(defaultRoutines)
-                    saveRoutines(defaultRoutines)
-                  }
-                }}>Reset to Default</button>
               </>
             )}
           </div>
