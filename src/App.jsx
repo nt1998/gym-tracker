@@ -2416,7 +2416,21 @@ function App() {
                 </div>
                 <div className="field">
                   <label>Target Reps</label>
-                  <input type="number" value={editModal.exercise.reps} onChange={(e) => setEditModal({...editModal, exercise: {...editModal.exercise, reps: e.target.value}})} placeholder="8" onFocus={(e) => e.target.select()} />
+                  <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                    <input type="number" value={(editModal.exercise.reps || '').split('-')[0] || ''} onChange={(e) => {
+                      const min = e.target.value
+                      const max = (editModal.exercise.reps || '').split('-')[1] || ''
+                      const next = min && max ? `${min}-${max}` : (min || max || '')
+                      setEditModal({...editModal, exercise: {...editModal.exercise, reps: next}})
+                    }} placeholder="8" onFocus={(e) => e.target.select()} style={{width: '100%'}} />
+                    <span>–</span>
+                    <input type="number" value={(editModal.exercise.reps || '').split('-')[1] || ''} onChange={(e) => {
+                      const min = (editModal.exercise.reps || '').split('-')[0] || ''
+                      const max = e.target.value
+                      const next = min && max ? `${min}-${max}` : (min || max || '')
+                      setEditModal({...editModal, exercise: {...editModal.exercise, reps: next}})
+                    }} placeholder="12" onFocus={(e) => e.target.select()} style={{width: '100%'}} />
+                  </div>
                 </div>
               </div>
               <div className="field-row">
