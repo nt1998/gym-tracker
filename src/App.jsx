@@ -254,13 +254,13 @@ const emptyRoutines = {
   push: {
     name: 'Push', schedule: '', warmups: [],
     exercises: [
-      { id: 1, name: 'Bench Press', warmupSets: 2, workSets: 3, reps: '8-12', unit: 'kg', equipmentType: 'plates', startWeight: 0, increment: 5, barWeight: 20 },
+      { id: 1, name: 'Bench Press', warmupSets: 2, workSets: 3, reps: '8-12', unit: 'kg', equipmentType: 'plates', startWeight: 120, increment: 5, barWeight: 20 },
     ],
   },
   pull: {
     name: 'Pull', schedule: '', warmups: [],
     exercises: [
-      { id: 1, name: 'Lat Row', warmupSets: 2, workSets: 3, reps: '8-12', unit: 'kg', equipmentType: 'machine', startWeight: 10, increment: 5 },
+      { id: 1, name: 'Lat Pulldown', warmupSets: 2, workSets: 3, reps: '8-12', unit: 'lbs', equipmentType: 'cable', startWeight: 240, increment: 15 },
     ],
   },
   rest: { name: 'Rest Day', schedule: '', isRest: true, warmups: [], exercises: [], blocks: [] },
