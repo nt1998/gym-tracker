@@ -2342,6 +2342,17 @@ function App() {
                     )}
                   </div>
                 ))}
+                <button className="danger-btn" style={{marginTop: '24px'}} onClick={() => {
+                  if (!confirm('Delete ALL data? Wipes routines, workouts, notes. Cannot undo.')) return
+                  if (!confirm('Really? Last chance.')) return
+                  localStorage.removeItem('gymtracker_routines')
+                  localStorage.removeItem('gymtracker_workouts')
+                  localStorage.removeItem('gymtracker_notes')
+                  setRoutines(emptyRoutines)
+                  setWorkouts({})
+                  setExerciseNotes({})
+                  localStorage.setItem('gymtracker_routines', JSON.stringify(emptyRoutines))
+                }}>Delete All Data</button>
               </>
             )}
           </div>
