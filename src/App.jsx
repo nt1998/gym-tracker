@@ -281,6 +281,7 @@ function App() {
   const [swipeAnim, setSwipeAnim] = useState(false)
   const swipeRef = useRef(null)
   const suppressClickUntil = useRef(0)
+  const appRef = useRef(null)
   const [date] = useState(localDateKey(new Date()))
   const [workouts, setWorkouts] = useState({})
   const [routines, setRoutines] = useState(emptyRoutines)
@@ -1673,9 +1674,20 @@ function App() {
       e.stopPropagation()
     }
   }
+  // Non-passive touchmove: block browser scroll while horizontal swipe is active
+  useEffect(() => {
+    const el = appRef.current
+    if (!el) return
+    const block = (e) => {
+      if (swipeRef.current?.locked === 'h') e.preventDefault()
+    }
+    el.addEventListener('touchmove', block, { passive: false })
+    return () => el.removeEventListener('touchmove', block)
+  }, [])
 
   return (
     <div
+      ref={appRef}
       className="app"
       onTouchStart={onSwipeTouchStart}
       onTouchMove={onSwipeTouchMove}
