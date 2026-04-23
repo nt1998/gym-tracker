@@ -279,6 +279,7 @@ function App() {
   const [tab, setTab] = useState('log')
   const [swipeDx, setSwipeDx] = useState(0)
   const [swipeAnim, setSwipeAnim] = useState(false)
+  const [isSwiping, setIsSwiping] = useState(false)
   const swipeRef = useRef(null)
   const suppressClickUntil = useRef(0)
   const appRef = useRef(null)
@@ -1643,11 +1644,12 @@ function App() {
     if ((idx === 0 && dx > 0) || (idx === TABS.length - 1 && dx < 0)) adj = dx * 0.25
     s.active = true
     setSwipeDx(adj)
+    setIsSwiping(true)
   }
   const onSwipeTouchEnd = () => {
     const s = swipeRef.current
     swipeRef.current = null
-    if (!s) { setSwipeDx(0); return }
+    if (!s) { setSwipeDx(0); setIsSwiping(false); return }
     const dt = Date.now() - s.t0
     const dx = swipeDx
     const idx = TABS.indexOf(tab)
@@ -1658,16 +1660,30 @@ function App() {
     if (commit && dx < 0 && idx < TABS.length - 1) {
       suppressClickUntil.current = Date.now() + 400
       setSwipeDx(-w)
-      setTimeout(() => { setSwipeAnim(false); setSwipeDx(0); setTab(TABS[idx + 1]) }, 180)
+      setTimeout(() => { setSwipeAnim(false); setSwipeDx(0); setTab(TABS[idx + 1]); setIsSwiping(false) }, 180)
     } else if (commit && dx > 0 && idx > 0) {
       suppressClickUntil.current = Date.now() + 400
       setSwipeDx(w)
-      setTimeout(() => { setSwipeAnim(false); setSwipeDx(0); setTab(TABS[idx - 1]) }, 180)
+      setTimeout(() => { setSwipeAnim(false); setSwipeDx(0); setTab(TABS[idx - 1]); setIsSwiping(false) }, 180)
     } else {
       setSwipeDx(0)
+      setIsSwiping(false)
       setTimeout(() => setSwipeAnim(false), 180)
     }
   }
+  const GLOW_RANGE_PX = 100
+  const getTabGlow = (tabId) => {
+    const activeIdx = TABS.indexOf(tab)
+    const i = TABS.indexOf(tabId)
+    if (!isSwiping) return i === activeIdx ? 1 : 0
+    const progress = Math.min(1, Math.abs(swipeDx) / GLOW_RANGE_PX)
+    const targetIdx = swipeDx < 0 ? activeIdx + 1 : swipeDx > 0 ? activeIdx - 1 : activeIdx
+    if (i === activeIdx) return 1 - progress
+    if (i === targetIdx && targetIdx >= 0 && targetIdx < TABS.length) return progress
+    return 0
+  }
+  const tabCls = (tabId) => `${tab === tabId ? 'active' : ''}${isSwiping ? ' swiping' : ''}`
+  const tabStl = (tabId) => ({ '--glow': getTabGlow(tabId) })
   const onSwipeClickCapture = (e) => {
     if (Date.now() < suppressClickUntil.current) {
       e.preventDefault()
@@ -2465,7 +2481,8 @@ function App() {
 
       <nav className="navbar">
         <button
-          className={tab === 'log' ? 'active' : ''}
+          className={tabCls('log')}
+          style={tabStl('log')}
           onClick={() => { if (!longPressRef.current?.fired) setTab('log') }}
           onTouchStart={() => {
             longPressRef.current = { id: setTimeout(() => {
@@ -2481,8 +2498,8 @@ function App() {
           onMouseUp={() => { if (longPressRef.current) clearTimeout(longPressRef.current.id) }}
           onContextMenu={e => e.preventDefault()}
         ><span className="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3v18M7 3v18M3 7v10M21 7v10M7 12h10M3 12h4M17 12h4"/></svg></span></button>
-        <button className={tab === 'stats' ? 'active' : ''} onClick={() => setTab('stats')}><span className="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg></span></button>
-        <button className={tab === 'settings' ? 'active' : ''} onClick={() => { setTab('settings'); fetchCommitsToday() }}><span className="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span></button>
+        <button className={tabCls('stats')} style={tabStl('stats')} onClick={() => setTab('stats')}><span className="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-6"/></svg></span></button>
+        <button className={tabCls('settings')} style={tabStl('settings')} onClick={() => { setTab('settings'); fetchCommitsToday() }}><span className="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span></button>
       </nav>
 
       {editModal && editModal.type === 'exercise' && (
