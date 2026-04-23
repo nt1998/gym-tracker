@@ -52,8 +52,13 @@ function ScrubbableLine({ data, options, renderHead, className }) {
       if (selRef.current == null) return
       if (wrapRef.current && !wrapRef.current.contains(e.target)) clearSel()
     }
+    const onExtClear = () => clearSel()
     document.addEventListener('pointerdown', onDown)
-    return () => document.removeEventListener('pointerdown', onDown)
+    window.addEventListener('scrub:clear', onExtClear)
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      window.removeEventListener('scrub:clear', onExtClear)
+    }
   }, [])
 
   const pickIdx = (clientX) => {
@@ -1653,6 +1658,7 @@ function App() {
       if (s.locked !== 'h' || s.scrubLocked) return
       e.preventDefault()
       e.stopPropagation()
+      if (!s.active) window.dispatchEvent(new Event('scrub:clear'))
       const idx = TABS.indexOf(tabRef.current)
       let adj = dx
       if ((idx === 0 && dx > 0) || (idx === TABS.length - 1 && dx < 0)) adj = dx * 0.25
@@ -1713,7 +1719,7 @@ function App() {
   return (
     <div
       ref={appRef}
-      className="app"
+      className={`app${isSwiping ? ' is-swiping' : ''}`}
       onClickCapture={onSwipeClickCapture}
     >
       <main className="content" key={tab}>

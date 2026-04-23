@@ -14,6 +14,10 @@
   touch-action: pan-y;
   overscroll-behavior-x: contain;
 }
+.app.is-swiping .log-page,
+.app.is-swiping .stats-page,
+.app.is-swiping .settings-page,
+.app.is-swiping > main.content { pointer-events: none; }
 .app input, .app textarea {
   -webkit-user-select: text;
   user-select: text;
