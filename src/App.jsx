@@ -273,8 +273,13 @@ const localDateKey = (d) => {
   return `${y}-${m}-${day}`
 }
 
+const TABS = ['log', 'stats', 'settings']
+
 function App() {
   const [tab, setTab] = useState('log')
+  const [swipeDx, setSwipeDx] = useState(0)
+  const [swipeAnim, setSwipeAnim] = useState(false)
+  const swipeRef = useRef(null)
   const [date] = useState(localDateKey(new Date()))
   const [workouts, setWorkouts] = useState({})
   const [routines, setRoutines] = useState(emptyRoutines)
@@ -1601,9 +1606,74 @@ function App() {
 
   const isLastExercise = currentExerciseIdx === totalItems - 1
 
+  // ---- Swipe nav between tabs ----
+  const SWIPE_THRESHOLD = 60 // px to commit tab change
+  const onSwipeTouchStart = (e) => {
+    if (e.touches.length !== 1) { swipeRef.current = null; return }
+    const t = e.target
+    // ignore swipes starting on interactive / scrollable inner elements
+    if (t && t.closest && t.closest('input, textarea, select, [contenteditable="true"], svg, canvas, .hscroll, .no-swipe, .set-row, .exercise-list, .calendar-grid, .history-list')) {
+      swipeRef.current = null
+      return
+    }
+    swipeRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      locked: null,
+      active: false,
+    }
+    setSwipeAnim(false)
+  }
+  const onSwipeTouchMove = (e) => {
+    const s = swipeRef.current
+    if (!s) return
+    const dx = e.touches[0].clientX - s.x
+    const dy = e.touches[0].clientY - s.y
+    if (s.locked == null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return
+      s.locked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
+    }
+    if (s.locked !== 'h') return
+    const idx = TABS.indexOf(tab)
+    let adj = dx
+    if ((idx === 0 && dx > 0) || (idx === TABS.length - 1 && dx < 0)) adj = dx * 0.25 // resistance at edges
+    s.active = true
+    setSwipeDx(adj)
+  }
+  const onSwipeTouchEnd = () => {
+    const s = swipeRef.current
+    swipeRef.current = null
+    if (!s || !s.active) { setSwipeDx(0); return }
+    const dx = swipeDx
+    const idx = TABS.indexOf(tab)
+    const w = window.innerWidth || 375
+    setSwipeAnim(true)
+    if (dx <= -SWIPE_THRESHOLD && idx < TABS.length - 1) {
+      setSwipeDx(-w)
+      setTimeout(() => { setSwipeAnim(false); setSwipeDx(0); setTab(TABS[idx + 1]) }, 180)
+    } else if (dx >= SWIPE_THRESHOLD && idx > 0) {
+      setSwipeDx(w)
+      setTimeout(() => { setSwipeAnim(false); setSwipeDx(0); setTab(TABS[idx - 1]) }, 180)
+    } else {
+      setSwipeDx(0)
+      setTimeout(() => setSwipeAnim(false), 180)
+    }
+  }
+
   return (
     <div className="app">
-      <main className="content" key={tab}>
+      <main
+        className="content"
+        key={tab}
+        onTouchStart={onSwipeTouchStart}
+        onTouchMove={onSwipeTouchMove}
+        onTouchEnd={onSwipeTouchEnd}
+        onTouchCancel={onSwipeTouchEnd}
+        style={{
+          transform: swipeDx ? `translateX(${swipeDx}px)` : undefined,
+          transition: swipeAnim ? 'transform 180ms ease-out' : undefined,
+        }}
+      >
         {tab === 'log' && currentRoutine?.isRest && restExercises.length > 0 && (() => {
           const ex = restExercises[currentExerciseIdx] || restExercises[0]
           const flatChecks = (Array.isArray(workout.restChecks?.[0]) || workout.restChecks?.length === 0)
